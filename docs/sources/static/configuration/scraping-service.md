@@ -1,12 +1,25 @@
 ---
 aliases:
-- ../../scraping-service/
 - ../../configuration/scraping-service/
+- ../../scraping-service/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/scraping-service/
+- /docs/grafana-cloud/send-data/agent/static/configuration/scraping-service/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
-title: Scraping service (Beta)
-menuTitle: Scraping service
 description: Learn about the scraping service
+menuTitle: Scraping service
+title: Scraping service (Beta)
 weight: 600
+refs:
+  api:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/api/
+    - pattern: /docs/grafana-cloud/
+      destination: ../api/
+  metrics:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
+    - pattern: /docs/grafana-cloud/
+      destination: ./metrics-config/
 ---
 
 # Scraping service (Beta)
@@ -14,7 +27,7 @@ weight: 600
 The Grafana Agent scraping service allows you to cluster a set of Agent processes and distribute the scrape load.
 
 Determining what to scrape is done by writing instance configuration files to an
-[API][api], which then stores the configuration files in a KV store backend.
+[API](ref:api), which then stores the configuration files in a KV store backend.
 All agents in the cluster **must** use the same KV store to see the same set
 of configuration files.
 
@@ -44,7 +57,7 @@ remote_write:
 
 The full set of supported options for an instance configuration file is
 available in the
-[`metrics-config.md` file][metrics].
+[`metrics-config.md` file](ref:metrics).
 
 Multiple instance configuration files are necessary for sharding. Each
 config file is distributed to a particular agent on the cluster based on the
@@ -166,9 +179,20 @@ container with the `grafana/agentctl` image. Tanka configurations that
 utilize `grafana/agentctl` and sync a set of configurations to the API
 are planned for the future.
 
-{{% docs/reference %}}
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api"
-[api]: "/docs/grafana-cloud/ -> ../api"
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
-[metrics]: "/docs/grafana-cloud/ -> ./metrics-config"
-{{% /docs/reference %}}
+## Debug Ring endpoint
+
+You can use the `/debug/ring` endpoint to troubleshoot issues with the scraping service in Scraping Service Mode. 
+It provides information about the Distributed Hash Ring and the current distribution of configurations among Agents in the cluster.
+It also allows you to forget an instance in the ring manually.
+
+You can access this endpoint by making an HTTP request to the Agent's API server.
+
+Information returned by the `/debug/ring` endpoint includes:
+
+- The list of Agents in the cluster, and their respective tokens used for sharding.
+- The list of configuration files in the KV store and associated hash values used for lookup in the ring.
+- The unique instance ID assigned to each instance of the Agent running in the cluster.
+   The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
+   The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
+- The time of the "Last Heartbeat" of each instance. The Last Heartbeat is the last time the instance was active in the ring.
+

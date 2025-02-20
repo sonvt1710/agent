@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.ec2/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.ec2/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.ec2/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.ec2/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ec2/
-title: discovery.ec2
 description: Learn about discovery.ec2
+title: discovery.ec2
 ---
 
 # discovery.ec2
@@ -25,16 +26,33 @@ discovery.ec2 "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`endpoint` | `string` | Custom endpoint to be used.| | no
-`region` | `string` | The AWS region. If blank, the region from the instance metadata is used. | | no
-`access_key` | `string` | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used. | | no
-`secret_key` | `string` | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used. | | no
-`profile` | `string` | Named AWS profile used to connect to the API. | | no
-`role_arn` | `string` | AWS Role Amazon Resource Name (ARN), an alternative to using AWS API keys. | | no
-`refresh_interval` | `string` | Refresh interval to re-read the instance list. | 60s | no
-`port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80 | no
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`endpoint`               | `string`            | Custom endpoint to be used.                                   |         | no
+`region`                 | `string`            | The AWS region. If blank, the region from the instance metadata is used. | | no
+`access_key`             | `string`            | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used. | | no
+`secret_key`             | `string`            | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used. | | no
+`profile`                | `string`            | Named AWS profile used to connect to the API.                 |         | no
+`role_arn`               | `string`            | AWS Role Amazon Resource Name (ARN), an alternative to using AWS API keys. | | no
+`refresh_interval`       | `string`            | Refresh interval to re-read the instance list.                | 60s     | no
+`port`                   | `int`               | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80 | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+
+ At most, one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments).
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+ {{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 
@@ -43,9 +61,21 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 filter | [filter][] | Filters discoverable resources. | no
+oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 [filter]: #filter-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+
+### authorization block
+
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### filter block
 
@@ -60,6 +90,14 @@ Name | Type | Description | Default | Required
 Refer to the [Filter API AWS EC2 documentation][filter api] for the list of supported filters and their descriptions.
 
 [filter api]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Filter.html
+
+### oauth2 block
+
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -102,7 +140,7 @@ values.
 
 `discovery.ec2` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.ec2` does not expose any component-specific debug metrics.
 
@@ -133,3 +171,18 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.ec2` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

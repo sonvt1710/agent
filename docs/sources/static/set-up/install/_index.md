@@ -1,12 +1,20 @@
 ---
 aliases:
-- ../set-up/
 - ../
+- ../set-up/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/
+description: Learn how to install GRafana Agent in static mode
 menuTitle: Install static mode
 title: Install Grafana Agent in static mode
-description: Learn how to install GRafana Agent in static mode
 weight: 100
+refs:
+  data-collection:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/data-collection/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/data-collection/
 ---
 
 # Install Grafana Agent in static mode
@@ -20,20 +28,22 @@ The following architectures are supported:
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
-{{% /admonition %}}
+{{< /admonition >}}
 
 {{< section >}}
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Installing Grafana Agent on other operating systems is possible, but is not recommended or supported.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Grafana Cloud
 
 Use the Grafana Agent [Kubernetes configuration](/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/) or follow instructions for installing the Grafana Agent in the [Walkthrough](/docs/grafana-cloud/monitor-infrastructure/integrations/get-started/).
 
-## Tanka
+## Data collection
 
-For more information, refer to the [Tanka](https://tanka.dev) configurations in the Grafana Agent [production](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory on GitHub.
+By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection](ref:data-collection) for more information
+about what data is collected and how you can opt-out.
+

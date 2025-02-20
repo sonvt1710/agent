@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.docker/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.docker/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.docker/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.docker/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.docker/
-title: discovery.docker
 description: Learn about discovery.docker
+title: discovery.docker
 ---
 
 # discovery.docker
@@ -26,26 +27,31 @@ discovery.docker "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`host` | `string` | Address of the Docker Daemon to connect to. | | yes
-`port` | `number` | Port to use for collecting metrics when containers don't have any port mappings. | `80` | no
-`host_networking_host` | `string` | Host to use if the container is in host networking mode. | `"localhost"` | no
-`refresh_interval` | `duration` | Frequency to refresh list of containers. | `"1m"` | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`host`                   | `string`            | Address of the Docker Daemon to connect to.                   |         | yes
+`port`                   | `number`            | Port to use for collecting metrics when containers don't have any port mappings. | `80` | no
+`host_networking_host`   | `string`            | Host to use if the container is in host networking mode.      | `"localhost"` | no
+`refresh_interval`       | `duration`          | Frequency to refresh list of containers.                      | `"1m"`  | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
 
 [arguments]: #arguments
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 
@@ -59,6 +65,7 @@ basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the end
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -88,19 +95,19 @@ documentation for the list of supported filters and their meaning.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -145,7 +152,7 @@ values.
 
 `discovery.docker` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.docker` does not expose any component-specific debug metrics.
 
@@ -214,3 +221,18 @@ Replace the following:
 
 > **NOTE**: This example requires the "Expose daemon on tcp://localhost:2375
 > without TLS" setting to be enabled in the Docker Engine settings.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.docker` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

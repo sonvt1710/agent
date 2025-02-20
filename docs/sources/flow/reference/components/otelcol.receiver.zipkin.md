@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.zipkin/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.zipkin/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.zipkin/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.zipkin/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin/
-title: otelcol.receiver.zipkin
 description: Learn about otelcol.receiver.zipkin
+title: otelcol.receiver.zipkin
 ---
 
 # otelcol.receiver.zipkin
@@ -38,7 +39,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `parse_string_tags` | `bool` | Parse string tags and binary annotations into non-string types. | `false` | no
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:9411"` | no
-`max_request_body_size` | `string` | Maximum request body size the HTTP server will allow. No limit when unset. | | no
+`max_request_body_size` | `string`   | Maximum request body size the server will allow.                   | `20MiB`          | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 If `parse_string_tags` is `true`, string tags and binary annotations are
@@ -70,7 +71,7 @@ refers to a `tls` block defined inside a `grpc` block.
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### cors block
 
@@ -96,11 +97,11 @@ If `allowed_headers` includes `"*"`, all headers are permitted.
 
 ### debug_metrics block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -142,3 +143,18 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.zipkin` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
+
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

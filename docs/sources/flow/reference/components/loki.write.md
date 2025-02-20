@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.write/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.write/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.write/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.write/
-title: loki.write
 description: Learn about loki.write
+title: loki.write
 ---
 
 # loki.write
@@ -49,6 +50,7 @@ endpoint > authorization | [authorization][] | Configure generic authorization t
 endpoint > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| endpoint > queue_config        | [queue_config][]  | When WAL is enabled, configures the queue client.        | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
 basic_auth` refers to a `basic_auth` block defined inside an
@@ -60,6 +62,7 @@ basic_auth` refers to a `basic_auth` block defined inside an
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[queue_config]: #queue_config-block
 
 ### endpoint block
 
@@ -68,31 +71,36 @@ The `endpoint` block describes a single location to send logs to. Multiple
 
 The following arguments are supported:
 
-Name                  | Type          | Description                           | Default        | Required
---------------------- | ------------- | ------------------------------------- | -------------- | --------
-`url`                 | `string`      | Full URL to send logs to. | | yes
-`name`                | `string`      | Optional name to identify this endpoint with. | | no
-`headers`             | `map(string)` | Extra headers to deliver with the request. | | no
-`batch_wait`          | `duration`    | Maximum amount of time to wait before sending a batch. | `"1s"` | no
-`batch_size`          | `string`      | Maximum batch size of logs to accumulate before sending. | `"1MiB"` | no
-`remote_timeout`      | `duration`    | Timeout for requests made to the URL. | `"10s"` | no
-`tenant_id`           | `string`      | The tenant ID used by default to push logs. | | no
-`min_backoff_period`  | `duration`    | Initial backoff time between retries. | `"500ms"` | no
-`max_backoff_period`  | `duration`    | Maximum backoff time between retries. | `"5m"` | no
-`max_backoff_retries` | `int`         | Maximum number of retries. | 10 | no
-`bearer_token`        | `secret`      | Bearer token to authenticate with. | | no
-`bearer_token_file`   | `string`      | File containing a bearer token to authenticate with. | | no
-`proxy_url`           | `string`      | HTTP proxy to proxy requests through. | | no
-`follow_redirects`    | `bool`        | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2`        | `bool`        | Whether HTTP2 is supported for requests. | `true` | no
-`retry_on_http_429`   | `bool`        | Retry when an HTTP 429 status code is received. | `true` | no
+Name                     | Type                | Description                                                   | Default   | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | --------- | --------
+`url`                    | `string`            | Full URL to send logs to.                                     |           | yes
+`name`                   | `string`            | Optional name to identify this endpoint with.                 |           | no
+`headers`                | `map(string)`       | Extra headers to deliver with the request.                    |           | no
+`batch_wait`             | `duration`          | Maximum amount of time to wait before sending a batch.        | `"1s"`    | no
+`batch_size`             | `string`            | Maximum batch size of logs to accumulate before sending.      | `"1MiB"`  | no
+`remote_timeout`         | `duration`          | Timeout for requests made to the URL.                         | `"10s"`   | no
+`tenant_id`              | `string`            | The tenant ID used by default to push logs.                   |           | no
+`min_backoff_period`     | `duration`          | Initial backoff time between retries.                         | `"500ms"` | no
+`max_backoff_period`     | `duration`          | Maximum backoff time between retries.                         | `"5m"`    | no
+`max_backoff_retries`    | `int`               | Maximum number of retries.                                    | 10        | no
+`retry_on_http_429`      | `bool`              | Retry when an HTTP 429 status code is received.               | `true`    | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |           | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |           | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`    | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`    | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |           | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#endpoint-block).
  - [`bearer_token_file` argument](#endpoint-block).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 If no `tenant_id` is provided, the component assumes that the Loki instance at
 `endpoint` is running in single-tenant mode and no X-Scope-OrgID header is
@@ -114,19 +122,31 @@ enabled, the retry mechanism will be governed by the backoff configuration speci
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### queue_config block (experimental)
+
+The optional `queue_config` block configures, when WAL is enabled (see [Write-Ahead block](#wal-block-experimental)), how the
+underlying client queues batches of logs to be sent to Loki.
+
+The following arguments are supported:
+
+| Name            | Type       | Description                                                                                                                                                                      | Default | Required |
+| --------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `capacity`      | `string`   | Controls the size of the underlying send queue buffer. This setting should be considered a worst-case scenario of memory consumption, in which all enqueued batches are full. | `10MiB`  | no       |
+| `drain_timeout` | `duration` | Configures the maximum time the client can take to drain the send queue upon shutdown. During that time, it will enqueue pending batches and drain the send queue sending each. | `"1m"`  | no       |
 
 ### wal block (experimental)
 
@@ -140,17 +160,18 @@ following two mechanisms:
 `min_read_frequency` and `max_read_frequency`.
 
 The WAL is located inside a component-specific directory relative to the
-storage path Grafana Agent is configured to use. See the
+storage path {{< param "PRODUCT_NAME" >}} is configured to use. See the
 [`agent run` documentation][run] for how to change the storage path.
 
 The following arguments are supported:
 
 Name                  | Type       | Description                                                                                                        | Default   | Required
 --------------------- |------------|--------------------------------------------------------------------------------------------------------------------|-----------| --------
-`enabled`                 | `bool`     | Whether to enable the WAL.                                                                                   | false     | no
+`enabled`                 | `bool`     | Whether to enable the WAL.                                                                                         | false     | no
 `max_segment_age`             | `duration` | Maximum time a WAL segment should be allowed to live. Segments older than this setting will be eventually deleted. | `"1h"`    | no
 `min_read_frequency`          | `duration` | Minimum backoff time in the backup read mechanism.                                                                 | `"250ms"` | no
 `max_read_frequency`          | `duration` | Maximum backoff time in the backup read mechanism.                                                                 | `"1s"`    | no
+`drain_timeout`          | `duration` | Maximum time the WAL drain procedure can take, before being forcefully stopped.                                    | `"30s"`   | no
 
 [run]: {{< relref "../cli/run.md" >}}
 
@@ -205,7 +226,7 @@ You can create a `loki.write` component that sends your log entries to a managed
 ```river
 loki.write "default" {
     endpoint {
-        url = "https://logs-xxx.grafana.net"
+        url = "https://logs-xxx.grafana.net/loki/api/v1/push"
         basic_auth {
             username = env("LOKI_USERNAME")
             password = env("GRAFANA_CLOUD_API_KEY")
@@ -218,3 +239,18 @@ loki.write "default" {
 `loki.write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
 
 Any labels that start with `__` will be removed before sending to the endpoint.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.write` has exports that can be consumed by the following components:
+
+- Components that consume [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -3,16 +3,17 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.source.kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.kubernetes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
+description: Learn about loki.source.kubernetes
 labels:
   stage: experimental
 title: loki.source.kubernetes
-description: Learn about loki.source.kubernetes
 ---
 
 # loki.source.kubernetes
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
@@ -20,7 +21,7 @@ Kubernetes API. It has the following benefits over `loki.source.file`:
 * It works without a privileged container.
 * It works without a root user.
 * It works without needing access to the filesystem of the Kubernetes node.
-* It doesn't require a DaemonSet to collect logs, so one agent could collect
+* It doesn't require a DaemonSet to collect logs, so one {{< param "PRODUCT_ROOT_NAME" >}} could collect
   logs for the whole cluster.
 
 > **NOTE**: Because `loki.source.kubernetes` uses the Kubernetes API to tail
@@ -82,6 +83,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+clustering | [clustering][] | Configure the component for when {{< param "PRODUCT_NAME" >}} is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -92,48 +94,70 @@ inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[clustering]: #clustering-block
 
 ### client block
 
 The `client` block configures the Kubernetes client used to tail logs from
 containers. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is
 used.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`api_server` | `string` | URL of the Kubernetes API server. | | no
-`kubeconfig_file` | `string` | Path of the `kubeconfig` file to use for connecting to Kubernetes. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`api_server`             | `string`            | URL of the Kubernetes API server.                             |         | no
+`kubeconfig_file`        | `string`            | Path of the `kubeconfig` file to use for connecting to Kubernetes. |    | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument][client].
  - [`bearer_token_file` argument][client].
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
 
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### clustering block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
+
+When {{< param "PRODUCT_ROOT_NAME" >}} is [using clustering][], and `enabled` is set to true, then this
+`loki.source.kubernetes` component instance opts-in to participating in the
+cluster to distribute the load of log collection between all cluster nodes.
+
+If {{< param "PRODUCT_ROOT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
+`loki.source.kubernetes` collects logs from every target it receives in its
+arguments.
+
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 
@@ -180,3 +204,20 @@ loki.write "local" {
   }
 }
 ```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.kubernetes` can accept arguments from the following components:
+
+- Components that export [Targets](../../compatibility/#targets-exporters)
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
+
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

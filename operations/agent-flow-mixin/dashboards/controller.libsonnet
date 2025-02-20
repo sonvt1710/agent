@@ -174,9 +174,9 @@ local filename = 'agent-flow-controller.json';
         ])
       ),
 
-      // Graph evaluation rate
+      // Component evaluation rate
       (
-        panel.new(title='Graph evaluation rate', type='timeseries') {
+        panel.new(title='Component evaluation rate', type='timeseries') {
           fieldConfig: {
             defaults: {
               custom: {
@@ -188,7 +188,7 @@ local filename = 'agent-flow-controller.json';
         } +
         panel.withUnit('ops') +
         panel.withDescription(|||
-          The frequency in which the component graph gets updated.
+          The frequency at which components get updated.
         |||) +
         panel.withPosition({ x: 0, y: 12, w: 8, h: 10 }) +
         panel.withMultiTooltip() +
@@ -199,15 +199,17 @@ local filename = 'agent-flow-controller.json';
         ])
       ),
 
-      // Graph evaluation time
+      // Component evaluation time
+      //
+      // This panel supports both native and classic histograms, though it only shows one at a time.
       (
-        panel.new(title='Graph evaluation time', type='timeseries') +
+        panel.new(title='Component evaluation time', type='timeseries') +
         panel.withUnit('s') +
         panel.withDescription(|||
-          The percentiles for how long it takes to complete a graph evaluation.
+          The percentiles for how long it takes to complete component evaluations.
 
-          Graph evaluations must complete for components to have the latest
-          arguments. The longer graph evaluations take, the slower it will be to
+          Component evaluations must complete for components to have the latest
+          arguments. The longer the evaluations take, the slower it will be to
           reconcile the state of components.
 
           If evaluation is taking too long, consider sharding your components to
@@ -216,36 +218,79 @@ local filename = 'agent-flow-controller.json';
         panel.withPosition({ x: 8, y: 12, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
-            expr='histogram_quantile(0.99, sum by (le) (rate(agent_component_evaluation_seconds_bucket{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))',
+            expr=|||
+              histogram_quantile(0.99, sum(rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
+              or
+              histogram_quantile(0.99, sum by (le) (rate(agent_component_evaluation_seconds_bucket{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
+            |||,
             legendFormat='99th percentile',
           ),
           panel.newQuery(
-            expr='histogram_quantile(0.50, sum by (le) (rate(agent_component_evaluation_seconds_bucket{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))',
+            expr=|||
+              histogram_quantile(0.50, sum(rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
+              or
+              histogram_quantile(0.50, sum by (le) (rate(agent_component_evaluation_seconds_bucket{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
+            |||,
             legendFormat='50th percentile',
           ),
           panel.newQuery(
             expr=|||
-              sum(rate(agent_component_evaluation_seconds_sum{cluster="$cluster",namespace="$namespace"}[$__rate_interval])) /
-              sum(rate(agent_component_evaluation_seconds_count{cluster="$cluster",namespace="$namespace"}[$__rate_interval]))
+              (
+                histogram_sum(sum(rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval]))) /
+                histogram_count(sum(rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
+              )
+              or
+              (
+                sum(rate(agent_component_evaluation_seconds_sum{cluster="$cluster",namespace="$namespace"}[$__rate_interval])) /
+                sum(rate(agent_component_evaluation_seconds_count{cluster="$cluster",namespace="$namespace"}[$__rate_interval]))
+              )
             |||,
             legendFormat='Average',
           ),
         ])
       ),
 
-      // Graph evaluation histogram
+      // Slow components evaluation time %
       (
-        panel.newHeatmap('Graph evaluation histogram') +
+        panel.new(title='Slow components evaluation times', type='timeseries') +
+        panel.withUnit('percentunit') +
         panel.withDescription(|||
-          Detailed histogram view of how long graph evaluations take.
+          The percentage of time spent evaluating 'slow' components - components that took longer than 1 minute to evaluate.
 
-          The goal is to design your config so that evaluations take as little
-          time as possible; under 100ms is a good goal.
+          Ideally, no component should take more than 1 minute to evaluate. The components displayed in this chart
+          may be a sign of a problem with the pipeline.
         |||) +
         panel.withPosition({ x: 16, y: 12, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
-            expr='sum by (le) (increase(agent_component_evaluation_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))',
+            expr=|||
+              sum by (component_path, component_id) (rate(agent_component_evaluation_slow_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+              / scalar(sum(rate(agent_component_evaluation_seconds_sum{cluster="$cluster", namespace="$namespace"}[$__rate_interval])))
+            |||,
+            legendFormat='{{component path}} {{component_id}}',
+          ),
+        ])
+      ),
+
+      // Component evaluation histogram
+      //
+      // This panel supports both native and classic histograms, though it only shows one at a time.
+      (
+        panel.newNativeHistogramHeatmap('Component evaluation histogram', 's') +
+        panel.withDescription(|||
+          Detailed histogram view of how long component evaluations take.
+
+          The goal is to design your config so that evaluations take as little
+          time as possible; under 100ms is a good goal.
+        |||) +
+        panel.withPosition({ x: 0, y: 22, w: 8, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              sum(increase(agent_component_evaluation_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+              or ignoring (le)
+              sum by (le) (increase(agent_component_evaluation_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+            |||,
             format='heatmap',
             legendFormat='{{le}}',
           ),
@@ -253,18 +298,24 @@ local filename = 'agent-flow-controller.json';
       ),
 
       // Component dependency wait time histogram
+      //
+      // This panel supports both native and classic histograms, though it only shows one at a time.
       (
-        panel.newHeatmap('Component dependency wait histogram') +
+        panel.newNativeHistogramHeatmap('Component dependency wait histogram', 's') +
         panel.withDescription(|||
           Detailed histogram of how long components wait to be evaluated after their dependency is updated.
 
           The goal is to design your config so that most of the time components do not
           queue for long; under 10ms is a good goal.
         |||) +
-        panel.withPosition({ x: 0, y: 22, w: 8, h: 10 }) +
+        panel.withPosition({ x: 8, y: 22, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
-            expr='sum by (le) (increase(agent_component_dependencies_wait_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))',
+            expr=|||
+              sum(increase(agent_component_dependencies_wait_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+              or ignoring (le)
+              sum by (le) (increase(agent_component_dependencies_wait_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+            |||,
             format='heatmap',
             legendFormat='{{le}}',
           ),

@@ -17,14 +17,15 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/metrics/instance"
-	"github.com/grafana/agent/pkg/server"
-	"github.com/grafana/agent/pkg/supportbundle"
-	"github.com/grafana/agent/pkg/traces"
-	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/usagestats"
+	"github.com/grafana/agent/static/config"
+	"github.com/grafana/agent/static/logs"
+	"github.com/grafana/agent/static/metrics"
+	"github.com/grafana/agent/static/metrics/instance"
+	"github.com/grafana/agent/static/server"
+	"github.com/grafana/agent/static/supportbundle"
+	"github.com/grafana/agent/static/traces"
 	"github.com/grafana/dskit/signals"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
@@ -98,6 +99,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
+	agentseed.Init("", logger)
 	ep.reporter, err = usagestats.NewReporter(logger)
 	if err != nil {
 		return nil, err

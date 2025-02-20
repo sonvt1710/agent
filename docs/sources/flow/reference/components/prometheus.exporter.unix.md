@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.unix/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.unix/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.unix/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
-title: prometheus.exporter.unix
 description: Learn about prometheus.exporter.unix
+title: prometheus.exporter.unix
 ---
 
 # prometheus.exporter.unix
@@ -18,13 +19,13 @@ The `node_exporter` itself is comprised of various _collectors_, which can be
 enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
 
-The `prometheus.exporter.unix` component can only appear once per
-configuration file, and a block label must not be passed to it.
+
+Multiple `prometheus.exporter.unix` components can be specified by giving them different labels.
 
 ## Usage
 
 ```river
-prometheus.exporter.unix {
+prometheus.exporter.unix "LABEL" {
 }
 ```
 
@@ -134,6 +135,8 @@ The following blocks are supported inside the definition of
 
 ### filesystem block
 
+The default values can vary by the operating system the agent runs on - refer to the [integration source](https://github.com/grafana/agent/blob/main/static/integrations/node_exporter/config.go) for up-to-date values on each OS.
+
 | Name                   | Type       | Description                                                         | Default                                         | Required |
 | ---------------------- | ---------- | ------------------------------------------------------------------- | ----------------------------------------------- | -------- |
 | `fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.      | (_see below_ )                                  | no       |
@@ -143,7 +146,7 @@ The following blocks are supported inside the definition of
 `fs_types_exclude` defaults to the following regular expression string:
 
 ```
-^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$
+^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
 ```
 
 ### ipvs block
@@ -187,7 +190,7 @@ The following blocks are supported inside the definition of
 `fields` defaults to the following regular expression string:
 
 ```
-"^(.*_(InErrors\|InErrs)\|Ip_Forwarding\|Ip(6\|Ext)_(InOctets\|OutOctets)\|Icmp6?_(InMsgs\|OutMsgs)\|TcpExt_(Listen.*\|Syncookies.*\|TCPSynRetrans\|TCPTimeouts)\|Tcp_(ActiveOpens\|InSegs\|OutSegs\|OutRsts\|PassiveOpens\|RetransSegs\|CurrEstab)\|Udp6?_(InDatagrams\|OutDatagrams\|NoPorts\|RcvbufErrors\|SndbufErrors))$"
+"^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans|TCPTimeouts)|Tcp_(ActiveOpens|InSegs|OutSegs|OutRsts|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$"
 ```
 
 ### perf block
@@ -261,7 +264,7 @@ An explicit value in the block takes precedence over the environment variable.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -381,11 +384,11 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.unix`:
 
 ```river
-prometheus.exporter.unix { }
+prometheus.exporter.unix "demo" { }
 
 // Configure a prometheus.scrape component to collect unix metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.exporter.unix.targets
+  targets    = prometheus.exporter.unix.demo.targets
   forward_to = [prometheus.remote_write.demo.receiver]
 }
 
@@ -408,3 +411,18 @@ Replace the following:
 - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.unix` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

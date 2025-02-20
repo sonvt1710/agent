@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.azure/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.azure/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.azure/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.azure/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.azure/
-title: discovery.azure
 description: Learn about discovery.azure
+title: discovery.azure
 ---
 
 # discovery.azure
@@ -25,15 +26,20 @@ discovery.azure "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type       | Description                                                            | Default              | Required
-------------------- | ---------- | ---------------------------------------------------------------------- | -------------------- | --------
-`environment`       | `string`   | Azure environment.                                                     | `"AzurePublicCloud"` | no
-`port`              | `number`   | Port to be appended to the `__address__` label for each target.        | `80`                 | no
-`subscription_id`   | `string`   | Azure subscription ID.                                                 |                      | no
-`refresh_interval`  | `duration` | Interval at which to refresh the list of targets.                      | `5m`                 | no
-`proxy_url`         | `string`   | HTTP proxy to proxy requests through.                                  |                      | no
-`follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed.           | `true`               | no
-`enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                               | `true`               | no
+Name                     | Type                | Description                                                            | Default              | Required
+------------------------ | ----------          | ---------------------------------------------------------------------- | -------------------- | --------
+`environment`            | `string`            | Azure environment.                                                     | `"AzurePublicCloud"` | no
+`port`                   | `number`            | Port to be appended to the `__address__` label for each target.        | `80`                 | no
+`subscription_id`        | `string`            | Azure subscription ID.                                                 |                      | no
+`refresh_interval`       | `duration`          | Interval at which to refresh the list of targets.                      | `5m`                 | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                                   |                      | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                  | `false`              | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.          |                      | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.           | `true`               | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                               | `true`               | no
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 The following blocks are supported inside the definition of
@@ -69,7 +75,7 @@ Name | Type | Description | Default | Required
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -107,7 +113,7 @@ values.
 
 `discovery.azure` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.azure` does not expose any component-specific debug metrics.
 
@@ -148,3 +154,18 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.azure` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

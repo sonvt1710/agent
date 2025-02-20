@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.kafka/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.kafka/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.kafka/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.kafka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.kafka/
-title: otelcol.receiver.kafka
 description: Learn about otelcol.receiver.kafka
+title: otelcol.receiver.kafka
 ---
 
 # otelcol.receiver.kafka
@@ -44,11 +45,22 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `brokers` | `array(string)` | Kafka brokers to connect to. | | yes
 `protocol_version` | `string` | Kafka protocol version to use. | | yes
-`topic` | `string` | Kafka topic to read from. | `"otlp_spans"` | no
+`topic` | `string` | Kafka topic to read from. | | no
 `encoding` | `string` | Encoding of payload read from Kafka. | `"otlp_proto"` | no
 `group_id` | `string` | Consumer group to consume messages from. | `"otel-collector"` | no
 `client_id` | `string` | Consumer client ID to use. | `"otel-collector"` | no
 `initial_offset` | `string` | Initial offset to use if no offset was previously committed. | `"latest"` | no
+`resolve_canonical_bootstrap_servers_only` | `bool` | Whether to resolve then reverse-lookup broker IPs during startup. | `"false"` | no
+
+If `topic` is not set, different topics will be used for different telemetry signals:
+
+* Metrics will be received from an `otlp_metrics` topic.
+* Traces will be received from an `otlp_spans` topic.
+* Logs will be received from an `otlp_logs` topic.
+
+If `topic` is set to a specific value, then only the signal type that corresponds to the data stored in the topic must be set in the output block.
+For example, if `topic` is set to `"my_telemetry"`, then the `"my_telemetry"` topic can only contain either metrics, logs, or traces. 
+If it contains only metrics, then `otelcol.receiver.kafka` should be configured to output only metrics.
 
 The `encoding` argument determines how to decode messages read from Kafka.
 `encoding` must be one of the following strings:
@@ -63,7 +75,7 @@ The `encoding` argument determines how to decode messages read from Kafka.
 * `"text"`: Decode the log message as text and insert it into the body of a log record.
   By default, UTF-8 is used to decode. A different encoding can be chosen by using `text_<ENCODING>`. For example, `text_utf-8` or `text_shift_jis`.
 * `"json"`: Decode the JSON payload and insert it into the body of a log record.
-
+* `"azure_resource_logs"`: The payload is converted from Azure Resource Logs format to an OTLP log.
 
 `"otlp_proto"` must be used to read all telemetry types from Kafka; other
 encodings are signal-specific.
@@ -87,6 +99,7 @@ metadata | [metadata][] | Configures how to retrieve metadata from Kafka brokers
 metadata > retry | [retry][] | Configures how to retry metadata retrieval. | no
 autocommit | [autocommit][] | Configures how to automatically commit updated topic offsets to back to the Kafka brokers. | no
 message_marking | [message_marking][] | Configures when Kafka messages are marked as read. | no
+header_extraction | [header_extraction][] | Extract headers from Kafka records. | no
 debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
@@ -104,6 +117,7 @@ The `>` symbol indicates deeper levels of nesting. For example,
 [retry]: #retry-block
 [autocommit]: #autocommit-block
 [message_marking]: #message_marking-block
+[header_extraction]: #header_extraction-block
 [debug_metrics]: #debug_metrics-block
 [output]: #output-block
 
@@ -135,6 +149,7 @@ Name | Type | Description | Default | Required
 `username` | `string` | Username to use for SASL authentication. | | yes
 `password` | `secret` | Password to use for SASL authentication. | | yes
 `mechanism` | `string` | SASL mechanism to use when authenticating. | | yes
+`version` | `number` | Version of the SASL Protocol to use when authenticating. | `0` | no
 
 The `mechanism` argument can be set to one of the following strings:
 
@@ -144,6 +159,8 @@ The `mechanism` argument can be set to one of the following strings:
 * `"SCRAM-SHA-512"`
 
 When `mechanism` is set to `"AWS_MSK_IAM"`, the [`aws_msk` child block][aws_msk] must also be provided.
+
+The `version` argument can be set to either `0` or `1`.
 
 ### aws_msk block
 
@@ -163,7 +180,7 @@ The `tls` block configures TLS settings used for connecting to the Kafka
 brokers. If the `tls` block isn't provided, TLS won't be used for
 communication.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### kerberos block
 
@@ -258,13 +275,26 @@ has no effect if `after_execution` is `false`.
 > to `false` can block the entire Kafka partition if message processing returns
 > a permanent error, such as failing to decode.
 
+### header_extraction block
+
+The `header_extraction` block configures how to extract headers from Kafka records.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`extract_headers` | `bool` | Enables attaching header fields to resource attributes. | `false` | no
+`headers` | `list(string)` | A list of headers to extract from the Kafka record. | `[]` | no
+
+Regular expressions are not allowed in the `headers` argument. Only exact matching will be performed.
+
 ### debug_metrics block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -311,3 +341,18 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.kafka` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
+
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

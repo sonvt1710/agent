@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.headers/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.headers/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.headers/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.headers/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers/
-title: otelcol.auth.headers
 description: Learn about otelcol.auth.headers
+title: otelcol.auth.headers
 ---
 
 # otelcol.auth.headers
@@ -69,16 +70,12 @@ Exactly one of `value` or `from_context` must be provided for each `header`
 block.
 
 The `value` attribute sets the value of the header directly.
+Alternatively, `from_context` can be used to dynamically retrieve the header value from request metadata.
 
-Alternatively, `from_context` can be used to dynamically retrieve the header
-value from request metadata.
-
-> **NOTE**: It is not possible to use `from_context` to get the header value if
-> [the `otelcol.processor.batch` component][otelcol.processor.batch] is used to
-> batch before data is sent to the component referencing
-> `otelcol.auth.headers`.
-
-[otelcol.processor.batch]: {{< relref "./otelcol.processor.batch.md" >}}
+For `from_context` to work, other components in the pipeline also need to be configured appropriately:
+* If an `otelcol.processor.batch` is present in the pipeline, it must be configured to preserve client metadata. 
+  Do this by adding the value that `from_context` needs to the `metadata_keys` of the batch processor.
+* `otelcol` receivers must be configured with `include_metadata` set to `true` so that metadata keys are available to the pipeline.
 
 ## Exported fields
 
@@ -102,10 +99,29 @@ configuration.
 This example configures [otelcol.exporter.otlp][] to use custom headers:
 
 ```river
-otelcol.exporter.otlp "example" {
-  client {
-    endpoint = "my-otlp-grpc-server:4317"
-    auth     = otelcol.auth.headers.creds.handler
+otelcol.receiver.otlp "default" {
+  http {
+    include_metadata = true
+  }
+  grpc {
+    include_metadata = true
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  // Preserve the tenant_id metadata.
+  metadata_keys = ["tenant_id"]
+
+  output {
+    metrics = [otelcol.exporter.otlp.production.input]
+    logs    = [otelcol.exporter.otlp.production.input]
+    traces  = [otelcol.exporter.otlp.production.input]
   }
 }
 
@@ -118,6 +134,13 @@ otelcol.auth.headers "creds" {
   header {
     key   = "User-ID"
     value = "user_id"
+  }
+}
+
+otelcol.exporter.otlp "production" {
+  client {
+    endpoint = env("OTLP_SERVER_ENDPOINT")
+    auth     = otelcol.auth.headers.creds.handler
   }
 }
 ```

@@ -1,14 +1,17 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.servicegraph/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.servicegraph/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.servicegraph/
+description: Learn about otelcol.connector.servicegraph
 labels:
   stage: experimental
 title: otelcol.connector.servicegraph
-description: Learn about otelcol.connector.servicegraph
 ---
 
 # otelcol.connector.servicegraph
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.connector.servicegraph` accepts span data from other `otelcol` components and 
 outputs metrics representing the relationship between various services in a system.
@@ -62,6 +65,7 @@ Name | Type | Description | Default | Required
 `dimensions` | `list(string)` | A list of dimensions to add with the default dimensions. | `[]` | no
 `cache_loop` | `duration` | Configures how often to delete series which have not been updated. | `"1m"` | no
 `store_expiration_loop` | `duration` | The time to expire old entries from the store periodically. | `"2s"` | no
+`metrics_flush_interval` | `duration` | The interval at which metrics are flushed to downstream components. | `"0s"` | no
 
 Service graphs work by inspecting traces and looking for spans with 
 parent-children relationship that represent a request.
@@ -110,6 +114,8 @@ Additional labels can be included using the `dimensions` configuration option:
 * Firstly the resource attributes will be searched. If the attribute is not found, 
   the span attributes will be searched.
 
+When `metrics_flush_interval` is set to `0s`, metrics will be flushed on every received batch of traces.
+
 [Span Kind]: https://opentelemetry.io/docs/concepts/signals/traces/#span-kind
 
 ## Blocks
@@ -132,11 +138,11 @@ The `store` block configures the in-memory store for spans.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `max_items` | `number` | Maximum number of items to keep in the store. | `1000` | no
-`ttl` | `duration` | The time to live for spans in the store. | `"2ms"` | no
+`ttl` | `duration` | The time to live for spans in the store. | `"2s"` | no
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -216,4 +222,21 @@ Some of the metrics in Mimir may look like this:
 ```
 traces_service_graph_request_total{client="shop-backend",failed="false",server="article-service",client_http_method="DELETE",server_http_method="DELETE"}
 traces_service_graph_request_failed_total{client="shop-backend",client_http_method="POST",failed="false",server="auth-service",server_http_method="POST"}
-```
+```<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.connector.servicegraph` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
+
+`otelcol.connector.servicegraph` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

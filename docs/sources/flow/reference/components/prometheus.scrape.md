@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.scrape/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
-title: prometheus.scrape
 description: Learn about prometheus.scrape
+title: prometheus.scrape
 ---
 
 # prometheus.scrape
@@ -43,37 +44,57 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
-`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
-`job_name`                 | `string`   | The job name to override the job label with. | component name | no
-`extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
+`targets`                     | `list(map(string))`     | List of targets to scrape. | | yes
+`forward_to`                  | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
+`job_name`                    | `string`   | The value to use for the job label if not already set. | component name | no
+`extra_metrics`               | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
-`honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
-`honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
-`params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
-`scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
-`metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
-`scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
-`body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
-`sample_limit`             | `uint`     | More than this many samples post metric-relabeling causes the scrape to fail | | no
-`target_limit`             | `uint`     | More than this many targets after the target relabeling causes the scrapes to fail. | | no
-`label_limit`              | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
-`label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
-`label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+`honor_labels`                | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
+`honor_timestamps`            | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
+`track_timestamps_staleness`  | `bool`     | Indicator whether to track the staleness of the scraped timestamps. | `false` | no
+`params`                      | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
+`scrape_classic_histograms`   | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
+`scrape_interval`             | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
+`scrape_timeout`              | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
+`metrics_path`                | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
+`scheme`                      | `string`   | The URL scheme with which to fetch metrics from targets. | | no
+`body_size_limit`             | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
+`sample_limit`                | `uint`     | More than this many samples post metric-relabeling causes the scrape to fail | | no
+`target_limit`                | `uint`     | More than this many targets after the target relabeling causes the scrapes to fail. | | no
+`label_limit`                 | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
+`label_name_length_limit`     | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
+`label_value_length_limit`    | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+
+`track_timestamps_staleness` controls whether Prometheus tracks [staleness][prom-staleness] of metrics which with an explicit timestamp present in scraped data.
+* An "explicit timestamp" is an optional timestamp in the [Prometheus metrics exposition format][prom-text-exposition-format]. For example, this sample has a timestamp of `1395066363000`:
+  ```
+  http_requests_total{method="post",code="200"} 1027 1395066363000
+  ```
+* If `track_timestamps_staleness` is set to `true`, a staleness marker will be inserted when a metric is no longer present or the target is down.
+* A "staleness marker" is just a {{< term "sample" >}}sample{{< /term >}} with a specific NaN value which is reserved for internal use by Prometheus.
+* It is recommended to set `track_timestamps_staleness` to `true` if the database where metrics are written to has enabled [out of order ingestion][mimir-ooo].
+* If `track_timestamps_staleness` is set to `false`, samples with explicit timestamps will only be labeled as stale after a certain time period, which in Prometheus is 5 minutes by default.
+
+[prom-text-exposition-format]: https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format
+[prom-staleness]: https://prometheus.io/docs/prometheus/latest/querying/basics/#staleness
+[mimir-ooo]: https://grafana.com/docs/mimir/latest/configure/configure-out-of-order-samples-ingestion/
 
 ## Blocks
 
@@ -97,31 +118,31 @@ an `oauth2` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
-[clustering]: #clustering-beta
+[clustering]: #clustering-block
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### clustering (beta)
+### clustering block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is [using clustering][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true,
 then this `prometheus.scrape` component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -141,7 +162,7 @@ sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 targets ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If the agent is _not_ running in clustered mode, then the block is a no-op and
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
 `prometheus.scrape` scrapes every target it receives in its arguments.
 
 [using clustering]: {{< relref "../../concepts/clustering.md" >}}
@@ -280,9 +301,26 @@ The following special labels can change the behavior of prometheus.scrape:
 * `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
 * `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
 * `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
-* `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
+* `__param_<name>` is a prefix for labels that provide URL parameters `<name>` used to scrape a target.
 
 Special labels added after a scrape
 * `__name__` is the label name indicating the metric name of a timeseries.
 * `job` is the label name indicating the job from which a timeseries was scraped.
 * `instance` is the label name used for the instance label.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.scrape` can accept arguments from the following components:
+
+- Components that export [Targets](../../compatibility/#targets-exporters)
+- Components that export [Prometheus `MetricsReceiver`](../../compatibility/#prometheus-metricsreceiver-exporters)
+
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

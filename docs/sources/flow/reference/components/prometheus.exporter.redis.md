@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.redis/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.redis/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.redis/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.redis/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.redis/
-title: prometheus.exporter.redis
 description: Learn about prometheus.exporter.redis
+title: prometheus.exporter.redis
 ---
 
 # prometheus.exporter.redis
@@ -42,6 +43,7 @@ Omitted fields take their default values.
 | `check_single_keys`           | `list(string)` | List of single keys to export value and length/size.                                                                    |            | no       |
 | `check_streams`               | `list(string)` | List of stream-patterns to export info about streams, groups, and consumers to search for with SCAN.                    |            | no       |
 | `check_single_streams`        | `list(string)` | List of single streams to export info about streams, groups, and consumers.                                             |            | no       |
+| `export_key_values`           | `bool`         | Whether to export key values as labels when using `check_keys` or `check_single_keys`.                                  | `true`     | no       |
 | `count_keys`                  | `list(string)` | List of individual keys to export counts for.                                                                           |            | no       |
 | `script_path`                 | `string`       | Path to Lua Redis script for collecting extra metrics.                                                                  |            | no       |
 | `script_paths`                | `list(string)` | List of paths to Lua Redis scripts for collecting extra metrics.                                                        |            | no       |
@@ -76,7 +78,7 @@ Note that setting `export_client_port` increases the cardinality of all Redis me
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -129,3 +131,18 @@ Replace the following:
 - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.redis` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -3,28 +3,44 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.connector.spanmetrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.spanmetrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.spanmetrics/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics/
+description: Learn about otelcol.connector.spanmetrics
 labels:
   stage: experimental
 title: otelcol.connector.spanmetrics
-description: Learn about otelcol.connector.spanmetrics
 ---
 
 # otelcol.connector.spanmetrics
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.connector.spanmetrics` accepts span data from other `otelcol` components and
 aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the spans:
 
 - **Request** counts are computed as the number of spans seen per unique set of dimensions,
   including Errors. Multiple metrics can be aggregated if, for instance, a user wishes to
-  view call counts just on `service.name`` and `span.name``.
+  view call counts just on `service.name` and `span.name`.
 
-- **Error** counts are computed from the Request counts which have an `Error` status code metric dimension.
+  Requests are tracked using a `calls` metric with a `status.code` datapoint attribute set to `Ok`:
+  ```
+  calls { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
+  ```
+
+- **Error** counts are computed from the number of spans with an `Error` status code.
+
+    Errors are tracked using a `calls` metric with a `status.code` datapoint attribute set to `Error`:
+    ```
+    calls { service.name="shipping", span.name="get_shipping/{shippingId}, span.kind="SERVER", status.code="Error" }
+    ```
 
 - **Duration** is computed from the difference between the span start and end times and inserted
-  into the relevant duration histogram time bucket for each unique set dimensions.
+    into the relevant duration histogram time bucket for each unique set dimensions.
+
+    Span durations are tracked using a `duration` histogram metric:
+    ```
+    duration { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
+    ```
 
 > **NOTE**: `otelcol.connector.spanmetrics` is a wrapper over the upstream
 > OpenTelemetry Collector `spanmetrics` connector. Bug reports or feature requests
@@ -51,13 +67,15 @@ otelcol.connector.spanmetrics "LABEL" {
 
 `otelcol.connector.spanmetrics` supports the following arguments:
 
-| Name                      | Type       | Description                                             | Default        | Required |
-| ------------------------- | ---------- | ------------------------------------------------------- | -------------- | -------- |
-| `dimensions_cache_size`   | `number`   | How many dimensions to cache.                           | `1000`         | no       |
-| `aggregation_temporality` | `string`   | Configures whether to reset the metrics after flushing. | `"CUMULATIVE"` | no       |
-| `metrics_flush_interval`  | `duration` | How often to flush generated metrics.                   | `"15s"`        | no       |
-| `namespace`               | `string`   | Metric namespace.                                       | `""`           | no       |
-| `exclude_dimensions`      | `list(string)` | List of dimensions to be excluded from the default set of dimensions. | `false` | no |
+| Name                              | Type           | Description                                                                                | Default        | Required |
+| --------------------------------- | -------------- | ------------------------------------------------------------------------------------------ | -------------- | -------- |
+| `aggregation_temporality`         | `string`       | Configures whether to reset the metrics after flushing.                                    | `"CUMULATIVE"` | no       |
+| `dimensions_cache_size`           | `number`       | How many dimensions to cache.                                                              | `1000`         | no       |
+| `exclude_dimensions`              | `list(string)` | List of dimensions to be excluded from the default set of dimensions.                      | `[]`           | no       |
+| `metrics_flush_interval`          | `duration`     | How often to flush generated metrics.                                                      | `"15s"`        | no       |
+| `namespace`                       | `string`       | Metric namespace.                                                                          | `""`           | no       |
+| `resource_metrics_cache_size`     | `number`       | The size of the cache holding metrics for a service.                                       | `1000`         | no       |
+| `resource_metrics_key_attributes` | `list(string)` | Limits the resource attributes used to create the metrics.                                 | `[]`           | no       |
 
 Adjusting `dimensions_cache_size` can improve the Agent process' memory usage.
 
@@ -68,19 +86,28 @@ The supported values for `aggregation_temporality` are:
 
 If `namespace` is set, the generated metric name will be added a `namespace.` prefix.
 
+`resource_metrics_cache_size` is mostly relevant for cumulative temporality. It helps avoid issues with increasing memory and with incorrect metric timestamp resets.
+
+`resource_metrics_key_attributes` can be used to avoid situations where resource attributes may change across service restarts, 
+causing metric counters to break (and duplicate). A resource does not need to have all of the attributes. 
+The list must include enough attributes to properly identify unique resources or risk aggregating data from more than one service and span.
+For example, `["service.name", "telemetry.sdk.language", "telemetry.sdk.name"]`.
+
 ## Blocks
 
 The following blocks are supported inside the definition of
 `otelcol.connector.spanmetrics`:
 
-| Hierarchy               | Block           | Description                                             | Required |
-| ----------------------- | --------------- | ------------------------------------------------------- | -------- |
-| dimension               | [dimension][]   | Dimensions to be added in addition to the default ones. | no       |
-| histogram               | [histogram][]   | Configures the histogram derived from spans durations.  | yes      |
-| histogram > exponential | [exponential][] | Configuration for a histogram with exponential buckets. | no       |
-| histogram > explicit    | [explicit][]    | Configuration for a histogram with explicit buckets.    | no       |
-| exemplars               | [exemplars][]   | Configures how to attach exemplars to histograms.       | no       |
-| output                  | [output][]      | Configures where to send telemetry data.                | yes      |
+| Hierarchy               | Block           | Description                                                                                                                                                | Required |
+| ----------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| dimension               | [dimension][]   | Dimensions to be added in addition to the default ones.                                                                                                    | no       |
+| events                  | [events][]      | Configures the events metric.                                                                                                                              | no       |
+| events > dimension      | [dimension][]   | Span event attributes to add as dimensions to the events metric, _on top of_ the default ones and the ones configured in the top-level `dimension` block. | no       |
+| exemplars               | [exemplars][]   | Configures how to attach exemplars to histograms.                                                                                                          | no       |
+| histogram               | [histogram][]   | Configures the histogram derived from spans durations.                                                                                                     | yes      |
+| histogram > explicit    | [explicit][]    | Configuration for a histogram with explicit buckets.                                                                                                       | no       |
+| histogram > exponential | [exponential][] | Configuration for a histogram with exponential buckets.                                                                                                    | no       |
+| output                  | [output][]      | Configures where to send telemetry data.                                                                                                                   | yes      |
 
 It is necessary to specify either a "[exponential][]" or an "[explicit][]" block:
 
@@ -92,6 +119,7 @@ It is necessary to specify either a "[exponential][]" or an "[explicit][]" block
 [exponential]: #exponential-block
 [explicit]: #explicit-block
 [exemplars]: #exemplars-block
+[events]: #events-block
 [output]: #output-block
 
 ### dimension block
@@ -112,8 +140,8 @@ The following attributes are supported:
 
 | Name      | Type     | Description                                      | Default | Required |
 | --------- | -------- | ------------------------------------------------ | ------- | -------- |
-| `name`    | `string` | Span attribute or resource attribute to look up. |         | yes      |
 | `default` | `string` | Value to use if the attribute is missing.        | null    | no       |
+| `name`    | `string` | Span attribute or resource attribute to look up. |         | yes      |
 
 `otelcol.connector.spanmetrics` will look for the `name` attribute in the span's
 collection of attributes. If it is not found, the resource attributes will be checked.
@@ -123,18 +151,32 @@ If the attribute is missing in both the span and resource attributes:
 - If `default` is not set, the dimension will be omitted.
 - If `default` is set, the dimension will be added and its value will be set to the value of `default`.
 
+### events block
+
+The `events` block configures the `events` metric, which tracks [span events][span-events].
+
+The following attributes are supported:
+
+| Name      | Type   | Description                | Default | Required |
+| --------- | ------ | -------------------------- | ------- | -------- |
+| `enabled` | `bool` | Enables all events metric. | `false` | no       |
+
+At least one `dimension` block is required if `enabled` is set to `true`.
+
+[span-events]: https://opentelemetry.io/docs/concepts/signals/traces/#span-events
+
 ### histogram block
 
 The `histogram` block configures the histogram derived from spans' durations.
 
 The following attributes are supported:
 
-| Name   | Type     | Description                     | Default | Required |
-| ------ | -------- | ------------------------------- | ------- | -------- |
-| `unit` | `string` | Configures the histogram units. | `"ms"`  | no       |
-| `disable`| `bool` | Disable all histogram metrics. | `false` | no |
+| Name      | Type     | Description                     | Default | Required |
+| --------- | -------- | ------------------------------- | ------- | -------- |
+| `disable` | `bool`   | Disable all histogram metrics.  | `false` | no       |
+| `unit`    | `string` | Configures the histogram units. | `"ms"`  | no       |
 
-The supported values for `aggregation_temporality` are:
+The supported values for `unit` are:
 
 - `"ms"`: milliseconds
 - `"s"`: seconds
@@ -165,13 +207,16 @@ The `exemplars` block configures how to attach exemplars to histograms.
 
 The following attributes are supported:
 
-| Name       | Type     | Description                                                      | Default | Required |
-| ---------- | -------- | ---------------------------------------------------------------- | ------- | -------- |
-| `enabled`  | `bool`   | Configures whether to add exemplars to histograms.               | `false` | no       |
+| Name                 | Type     | Description                                                                 | Default | Required |
+| -------------------- | -------- | --------------------------------------------------------------------------- | ------- | -------- |
+| `enabled`            | `bool`   | Configures whether to add exemplars to histograms.                          | `false` | no       |
+| `max_per_data_point` | `number` | Limits the number of exemplars that can be added to a unique dimension set. | `null`  | no       |
+
+`max_per_data_point` can help with reducing memory consumption.
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -182,6 +227,348 @@ The following fields are exported and can be referenced by other components:
 | `input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to. |
 
 `input` accepts `otelcol.Consumer` traces telemetry data. It does not accept metrics and logs.
+
+## Handling of resource attributes
+
+[Handling of resource attributes]: #handling-of-resource-attributes
+
+`otelcol.connector.spanmetrics` is an OTLP-native component. As such, it aims to preserve the resource attributes of spans.
+
+1. For example, let's assume that there are two incoming resources spans with the same `service.name` and `k8s.pod.name` resource attributes.
+   {{< collapse title="Example JSON of two incoming spans." >}}
+
+   ```json
+   {
+     "resourceSpans": [
+       {
+         "resource": {
+           "attributes": [
+             {
+               "key": "service.name",
+               "value": { "stringValue": "TestSvcName" }
+             },
+             {
+               "key": "k8s.pod.name",
+               "value": { "stringValue": "first" }
+             }
+           ]
+         },
+         "scopeSpans": [
+           {
+             "spans": [
+               {
+                 "trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+                 "span_id": "086e83747d0e381e",
+                 "name": "TestSpan",
+                 "attributes": [
+                   {
+                     "key": "attribute1",
+                     "value": { "intValue": "78" }
+                   }
+                 ]
+               }
+             ]
+           }
+         ]
+       },
+       {
+         "resource": {
+           "attributes": [
+             {
+               "key": "service.name",
+               "value": { "stringValue": "TestSvcName" }
+             },
+             {
+               "key": "k8s.pod.name",
+               "value": { "stringValue": "first" }
+             }
+           ]
+         },
+         "scopeSpans": [
+           {
+             "spans": [
+               {
+                 "trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+                 "span_id": "086e83747d0e381b",
+                 "name": "TestSpan",
+                 "attributes": [
+                   {
+                     "key": "attribute1",
+                     "value": { "intValue": "78" }
+                   }
+                 ]
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+   ```
+
+   {{< /collapse >}}
+
+1. `otelcol.connector.spanmetrics` will preserve the incoming `service.name` and `k8s.pod.name` resource attributes by attaching them to the output metrics resource.
+   Only one metric resource will be created, because both span resources have identical resource attributes.
+   {{< collapse title="Example JSON of one outgoing metric resource." >}}
+
+   ```json
+   {
+     "resourceMetrics": [
+       {
+         "resource": {
+           "attributes": [
+             {
+               "key": "service.name",
+               "value": { "stringValue": "TestSvcName" }
+             },
+             {
+               "key": "k8s.pod.name",
+               "value": { "stringValue": "first" }
+             }
+           ]
+         },
+         "scopeMetrics": [
+           {
+             "scope": { "name": "spanmetricsconnector" },
+             "metrics": [
+               {
+                 "name": "calls",
+                 "sum": {
+                   "dataPoints": [
+                     {
+                       "attributes": [
+                         {
+                           "key": "service.name",
+                           "value": { "stringValue": "TestSvcName" }
+                         },
+                         {
+                           "key": "span.name",
+                           "value": { "stringValue": "TestSpan" }
+                         },
+                         {
+                           "key": "span.kind",
+                           "value": { "stringValue": "SPAN_KIND_UNSPECIFIED" }
+                         },
+                         {
+                           "key": "status.code",
+                           "value": { "stringValue": "STATUS_CODE_UNSET" }
+                         }
+                       ],
+                       "startTimeUnixNano": "1702582936761872000",
+                       "timeUnixNano": "1702582936761872012",
+                       "asInt": "2"
+                     }
+                   ],
+                   "aggregationTemporality": 2,
+                   "isMonotonic": true
+                 }
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+   ```
+
+   {{< /collapse >}}
+
+1. Now assume that `otelcol.connector.spanmetrics` receives two incoming resource spans, each with a different value for the `k8s.pod.name` recourse attribute.
+   {{< collapse title="Example JSON of two incoming spans." >}}
+
+   ```json
+   {
+     "resourceSpans": [
+       {
+         "resource": {
+           "attributes": [
+             {
+               "key": "service.name",
+               "value": { "stringValue": "TestSvcName" }
+             },
+             {
+               "key": "k8s.pod.name",
+               "value": { "stringValue": "first" }
+             }
+           ]
+         },
+         "scopeSpans": [
+           {
+             "spans": [
+               {
+                 "trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+                 "span_id": "086e83747d0e381e",
+                 "name": "TestSpan",
+                 "attributes": [
+                   {
+                     "key": "attribute1",
+                     "value": { "intValue": "78" }
+                   }
+                 ]
+               }
+             ]
+           }
+         ]
+       },
+       {
+         "resource": {
+           "attributes": [
+             {
+               "key": "service.name",
+               "value": { "stringValue": "TestSvcName" }
+             },
+             {
+               "key": "k8s.pod.name",
+               "value": { "stringValue": "second" }
+             }
+           ]
+         },
+         "scopeSpans": [
+           {
+             "spans": [
+               {
+                 "trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+                 "span_id": "086e83747d0e381b",
+                 "name": "TestSpan",
+                 "attributes": [
+                   {
+                     "key": "attribute1",
+                     "value": { "intValue": "78" }
+                   }
+                 ]
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+   ```
+
+   {{< /collapse >}}
+
+1. To preserve the values of all resource attributes, `otelcol.connector.spanmetrics` will produce two resource metrics.
+   Each resource metric will have a different value for the `k8s.pod.name` recourse attribute.
+   This way none of the resource attributes will be lost during the generation of metrics.
+   {{< collapse title="Example JSON of two outgoing metric resources." >}}
+   ```json
+   {
+     "resourceMetrics": [
+       {
+         "resource": {
+           "attributes": [
+             {
+               "key": "service.name",
+               "value": { "stringValue": "TestSvcName" }
+             },
+             {
+               "key": "k8s.pod.name",
+               "value": { "stringValue": "first" }
+             }
+           ]
+         },
+         "scopeMetrics": [
+           {
+             "scope": {
+               "name": "spanmetricsconnector"
+             },
+             "metrics": [
+               {
+                 "name": "calls",
+                 "sum": {
+                   "dataPoints": [
+                     {
+                       "attributes": [
+                         {
+                           "key": "service.name",
+                           "value": { "stringValue": "TestSvcName" }
+                         },
+                         {
+                           "key": "span.name",
+                           "value": { "stringValue": "TestSpan" }
+                         },
+                         {
+                           "key": "span.kind",
+                           "value": { "stringValue": "SPAN_KIND_UNSPECIFIED" }
+                         },
+                         {
+                           "key": "status.code",
+                           "value": { "stringValue": "STATUS_CODE_UNSET" }
+                         }
+                       ],
+                       "startTimeUnixNano": "1702582936761872000",
+                       "timeUnixNano": "1702582936761872012",
+                       "asInt": "1"
+                     }
+                   ],
+                   "aggregationTemporality": 2,
+                   "isMonotonic": true
+                 }
+               }
+             ]
+           }
+         ]
+       },
+       {
+         "resource": {
+           "attributes": [
+             {
+               "key": "service.name",
+               "value": { "stringValue": "TestSvcName" }
+             },
+             {
+               "key": "k8s.pod.name",
+               "value": { "stringValue": "second" }
+             }
+           ]
+         },
+         "scopeMetrics": [
+           {
+             "scope": {
+               "name": "spanmetricsconnector"
+             },
+             "metrics": [
+               {
+                 "name": "calls",
+                 "sum": {
+                   "dataPoints": [
+                     {
+                       "attributes": [
+                         {
+                           "key": "service.name",
+                           "value": { "stringValue": "TestSvcName" }
+                         },
+                         {
+                           "key": "span.name",
+                           "value": { "stringValue": "TestSpan" }
+                         },
+                         {
+                           "key": "span.kind",
+                           "value": { "stringValue": "SPAN_KIND_UNSPECIFIED" }
+                         },
+                         {
+                           "key": "status.code",
+                           "value": { "stringValue": "STATUS_CODE_UNSET" }
+                         }
+                       ],
+                       "startTimeUnixNano": "1702582936761872000",
+                       "timeUnixNano": "1702582936761872012",
+                       "asInt": "1"
+                     }
+                   ],
+                   "aggregationTemporality": 2,
+                   "isMonotonic": true
+                 }
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+   ```
+   {{< /collapse >}}
 
 ## Component health
 
@@ -258,39 +645,167 @@ otelcol.exporter.otlp "production" {
 
 ### Sending metrics via a Prometheus remote write
 
-In order for a `target_info` metric to be generated, the incoming spans resource scope
+The generated metrics can be sent to a Prometheus-compatible database such as Grafana Mimir.
+However, extra steps are required in order to make sure all metric samples are received.
+This is because `otelcol.connector.spanmetrics` aims to [preserve resource attributes][Handling of resource attributes] in the metrics which it outputs.
+
+Unfortunately, the [Prometheus data model][prom-data-model] has no notion of resource attributes.
+This means that if `otelcol.connector.spanmetrics` outputs metrics with identical metric attributes,
+but different resource attributes, `otelcol.exporter.prometheus` will convert the metrics into the same metric series.
+This problem can be solved by doing **either** of the following:
+
+- **Recommended approach:** Prior to `otelcol.connector.spanmetrics`, remove all resource attributes from the incoming spans which are not needed by `otelcol.connector.spanmetrics`.
+  {{< collapse title="Example River configuration to remove unnecessary resource attributes." >}}
+  ```river
+  otelcol.receiver.otlp "default" {
+    http {}
+    grpc {}
+
+    output {
+      traces  = [otelcol.processor.transform.default.input]
+    }
+  }
+
+  // Remove all resource attributes except the ones which
+  // the otelcol.connector.spanmetrics needs.
+  // If this is not done, otelcol.exporter.prometheus may fail to
+  // write some samples due to an "err-mimir-sample-duplicate-timestamp" error.
+  // This is because the spanmetricsconnector will create a new
+  // metrics resource scope for each traces resource scope.
+  otelcol.processor.transform "default" {
+    error_mode = "ignore"
+
+    trace_statements {
+      context = "resource"
+      statements = [
+        // We keep only the "service.name" and "special.attr" resource attributes,
+        // because they are the only ones which otelcol.connector.spanmetrics needs.
+        //
+        // There is no need to list "span.name", "span.kind", and "status.code"
+        // here because they are properties of the span (and not resource attributes):
+        // https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
+        `keep_keys(attributes, ["service.name", "special.attr"])`,
+      ]
+    }
+
+    output {
+      traces  = [otelcol.connector.spanmetrics.default.input]
+    }
+  }
+
+  otelcol.connector.spanmetrics "default" {
+    histogram {
+      explicit {}
+    }
+
+    dimension {
+      name = "special.attr"
+    }
+    output {
+      metrics = [otelcol.exporter.prometheus.default.input]
+    }
+  }
+
+  otelcol.exporter.prometheus "default" {
+    forward_to = [prometheus.remote_write.mimir.receiver]
+  }
+
+  prometheus.remote_write "mimir" {
+    endpoint {
+      url = "http://mimir:9009/api/v1/push"
+    }
+  }
+  ```
+  {{< /collapse >}}
+
+- Or, after `otelcol.connector.spanmetrics`, copy each of the resource attributes as a metric datapoint attribute.
+This has the advantage that the resource attributes will be visible as metric labels.
+However, the {{< term "cardinality" >}}cardinality{{< /term >}} of the metrics may be much higher, which could increase the cost of storing and querying them.
+The example below uses the [merge_maps][] OTTL function.
+
+  {{< collapse title="Example River configuration to add all resource attributes as metric datapoint attributes." >}}
+  ```river
+  otelcol.receiver.otlp "default" {
+    http {}
+    grpc {}
+
+    output {
+      traces  = [otelcol.connector.spanmetrics.default.input]
+    }
+  }
+
+  otelcol.connector.spanmetrics "default" {
+    histogram {
+      explicit {}
+    }
+
+    dimension {
+      name = "special.attr"
+    }
+    output {
+      metrics = [otelcol.processor.transform.default.input]
+    }
+  }
+
+  // Insert resource attributes as metric data point attributes.
+  otelcol.processor.transform "default" {
+    error_mode = "ignore"
+
+    metric_statements {
+      context = "datapoint"
+      statements = [
+        // "insert" means that a metric datapoint attribute will be inserted
+        // only if an attribute with the same key does not already exist.
+        `merge_maps(attributes, resource.attributes, "insert")`,
+      ]
+    }
+
+    output {
+      metrics = [otelcol.exporter.prometheus.default.input]
+    }
+  }
+
+  otelcol.exporter.prometheus "default" {
+    forward_to = [prometheus.remote_write.mimir.receiver]
+  }
+
+  prometheus.remote_write "mimir" {
+    endpoint {
+      url = "http://mimir:9009/api/v1/push"
+    }
+  }
+  ```
+  {{< /collapse >}}
+
+If the resource attributes are not treated in either of the ways described above, an error such as this one could be logged by `prometheus.remote_write`:
+`the sample has been rejected because another sample with the same timestamp, but a different value, has already been ingested (err-mimir-sample-duplicate-timestamp)`.
+
+{{< admonition type="note" >}}
+In order for a Prometheus `target_info` metric to be generated, the incoming spans resource scope
 attributes must contain `service.name` and `service.instance.id` attributes.
 
 The `target_info` metric will be generated for each resource scope, while OpenTelemetry
 metric names and attributes will be normalized to be compliant with Prometheus naming rules.
+{{< /admonition >}}
 
-```river
-otelcol.receiver.otlp "default" {
-  http {}
-  grpc {}
+[merge_maps]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/ottlfuncs/README.md#merge_maps
+[prom-data-model]: https://prometheus.io/docs/concepts/data_model/
 
-  output {
-    traces  = [otelcol.connector.spanmetrics.default.input]
-  }
-}
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
 
-otelcol.connector.spanmetrics "default" {
-  histogram {
-    exponential {}
-  }
+## Compatible components
 
-  output {
-    metrics = [otelcol.exporter.prometheus.default.input]
-  }
-}
+`otelcol.connector.spanmetrics` can accept arguments from the following components:
 
-otelcol.exporter.prometheus "default" {
-  forward_to = [prometheus.remote_write.mimir.receiver]
-}
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
 
-prometheus.remote_write "mimir" {
-  endpoint {
-    url = "http://mimir:9009/api/v1/push"
-  }
-}
-```
+`otelcol.connector.spanmetrics` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

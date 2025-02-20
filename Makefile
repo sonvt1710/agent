@@ -15,20 +15,20 @@
 ##
 ## Targets for running tests:
 ##
-##   test  Run tests
-##   lint  Lint code
+##   test              Run tests
+##   lint              Lint code
+##   integration-test Run integration tests
 ##
 ## Targets for building binaries:
 ##
-##   binaries                Compiles all binaries.
-##   agent                   Compiles cmd/grafana-agent to $(AGENT_BINARY)
-##   agent-boringcrypto      Compiles cmd/grafana-agent with GOEXPERIMENT=boringcrypto to $(AGENT_BORINGCRYPTO_BINARY)
-##   agent-flow              Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
-##   agent-service           Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
-##   agentctl                Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
-##   operator                Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
-##   crow                    Compiles tools/crow to $(CROW_BINARY)
-##   smoke                   Compiles tools/smoke to $(SMOKE_BINARY)
+##   binaries                        Compiles all binaries.
+##   agent                           Compiles cmd/grafana-agent to $(AGENT_BINARY)
+##   agent-boringcrypto              Compiles cmd/grafana-agent with GOEXPERIMENT=boringcrypto to $(AGENT_BORINGCRYPTO_BINARY)
+##   agent-flow                      Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
+##   agent-flow-windows-boringcrypto Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)-windows-boringcrypto
+##   agent-service                   Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
+##   agentctl                        Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator                        Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
 ##
 ## Targets for building Docker images:
 ##
@@ -37,8 +37,6 @@
 ##   agent-boringcrypto-image Builds agent Docker image with boringcrypto.
 ##   agentctl-image           Builds agentctl Docker image.
 ##   operator-image           Builds operator Docker image.
-##   crow-image               Builds crow Docker image.
-##   smoke-image              Builds smoke test Docker image.
 ##
 ## Targets for packaging:
 ##
@@ -50,16 +48,16 @@
 ##
 ## Targets for generating assets:
 ##
-##   generate             Generate everything.
-##   generate-crds        Generate Grafana Agent Operator CRDs ands its documentation.
-##   generate-drone       Generate the Drone YAML from Jsonnet.
-##   generate-helm-docs   Generate Helm chart documentation.
-##   generate-helm-tests  Generate Helm chart tests.
-##   generate-manifests   Generate production/kubernetes YAML manifests.
-##   generate-dashboards  Generate dashboards in example/docker-compose after
-##                        changing Jsonnet.
-##   generate-protos      Generate protobuf files.
-##   generate-ui          Generate the UI assets.
+##   generate                 Generate everything.
+##   generate-crds            Generate Grafana Agent Operator CRDs ands its documentation.
+##   generate-drone           Generate the Drone YAML from Jsonnet.
+##   generate-helm-docs       Generate Helm chart documentation.
+##   generate-helm-tests      Generate Helm chart tests.
+##   generate-dashboards      Generate dashboards in example/docker-compose after
+##                            changing Jsonnet.
+##   generate-protos          Generate protobuf files.
+##   generate-ui              Generate the UI assets.
+##   generate-versioned-files Generate versioned files.
 ##
 ## Other targets:
 ##
@@ -76,8 +74,6 @@
 ##   AGENT_IMAGE                Image name:tag built by `make agent-image`
 ##   AGENTCTL_IMAGE             Image name:tag built by `make agentctl-image`
 ##   OPERATOR_IMAGE             Image name:tag built by `make operator-image`
-##   CROW_IMAGE                 Image name:tag built by `make crow-image`
-##   SMOKE_IMAGE                Image name:tag built by `make smoke-image`
 ##   BUILD_IMAGE                Image name:tag used by USE_CONTAINER=1
 ##   AGENT_BINARY               Output path of `make agent` (default build/grafana-agent)
 ##   AGENT_BORINGCRYPTO_BINARY  Output path of `make agent-boringcrypto` (default build/grafana-agent-boringcrypto)
@@ -85,8 +81,6 @@
 ##   SERVICE_BINARY             Output path of `make agent-service` (default build/grafana-agent-service)
 ##   AGENTCTL_BINARY            Output path of `make agentctl` (default build/grafana-agentctl)
 ##   OPERATOR_BINARY            Output path of `make operator` (default build/grafana-agent-operator)
-##   CROW_BINARY                Output path of `make crow` (default build/grafana-agent-crow)
-##   SMOKE_BINARY               Output path of `make smoke` (default build/grafana-agent-smoke)
 ##   GOOS                       Override OS to build binaries for
 ##   GOARCH                     Override target architecture to build binaries for
 ##   GOARM                      Override ARM version (6 or 7) when GOARCH=arm
@@ -103,16 +97,13 @@ AGENT_IMAGE                             ?= grafana/agent:latest
 AGENT_BORINGCRYPTO_IMAGE                ?= grafana/agent-boringcrypto:latest
 AGENTCTL_IMAGE                          ?= grafana/agentctl:latest
 OPERATOR_IMAGE                          ?= grafana/agent-operator:latest
-CROW_IMAGE                              ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
-SMOKE_IMAGE                             ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
 AGENT_BINARY                            ?= build/grafana-agent
 AGENT_BORINGCRYPTO_BINARY               ?= build/grafana-agent-boringcrypto
+AGENT_BORINGCRYPTO_WINDOWS_BINARY       ?= build/agent-flow-windows-boringcrypto.exe
 FLOW_BINARY                             ?= build/grafana-agent-flow
 SERVICE_BINARY                          ?= build/grafana-agent-service
 AGENTCTL_BINARY                         ?= build/grafana-agentctl
 OPERATOR_BINARY                         ?= build/grafana-agent-operator
-CROW_BINARY                             ?= build/agent-crow
-SMOKE_BINARY                            ?= build/agent-smoke
 AGENTLINT_BINARY                        ?= build/agentlint
 GOOS                                    ?= $(shell go env GOOS)
 GOARCH                                  ?= $(shell go env GOARCH)
@@ -124,10 +115,10 @@ GOEXPERIMENT                            ?= $(shell go env GOEXPERIMENT)
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
 PROPAGATE_VARS := \
-    AGENT_IMAGE AGENTCTL_IMAGE OPERATOR_IMAGE CROW_IMAGE SMOKE_IMAGE \
+    AGENT_IMAGE AGENTCTL_IMAGE OPERATOR_IMAGE \
     BUILD_IMAGE GOOS GOARCH GOARM CGO_ENABLED RELEASE_BUILD \
     AGENT_BINARY AGENT_BORINGCRYPTO_BINARY FLOW_BINARY AGENTCTL_BINARY OPERATOR_BINARY \
-    CROW_BINARY SMOKE_BINARY VERSION GO_TAGS GOEXPERIMENT
+    VERSION GO_TAGS GOEXPERIMENT
 
 #
 # Constants for targets
@@ -135,10 +126,10 @@ PROPAGATE_VARS := \
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
 
-VERSION      ?= $(shell ./tools/image-tag)
+VERSION      ?= $(shell bash ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
-VPREFIX      := github.com/grafana/agent/pkg/build
+VPREFIX      := github.com/grafana/agent/internal/build
 GO_LDFLAGS   := -X $(VPREFIX).Branch=$(GIT_BRANCH)                        \
                 -X $(VPREFIX).Version=$(VERSION)                          \
                 -X $(VPREFIX).Revision=$(GIT_REVISION)                    \
@@ -159,7 +150,7 @@ endif
 # Targets for running tests
 #
 # These targets currently don't support proxying to a build container due to
-# difficulties with testing ./pkg/util/k8s and testing packages.
+# difficulties with testing ./internal/util/k8s and testing packages.
 #
 
 .PHONY: lint
@@ -171,19 +162,23 @@ lint: agentlint
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
 test:
-	$(GO_ENV) go test $(GO_FLAGS) -race ./...
-	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s ./component/otelcol/processor/tail_sampling ./component/loki/source/file
+	$(GO_ENV) go test $(GO_FLAGS) -race $(shell go list ./... | grep -v /integration-tests/)
+	$(GO_ENV) go test $(GO_FLAGS) ./static/integrations/node_exporter ./static/logs ./static/operator ./internal/util/k8s ./internal/component/otelcol/processor/tail_sampling ./internal/component/loki/source/file ./internal/component/loki/source/docker
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
-	go test -tags=packaging  ./packaging
+	go test -tags=packaging  ./internal/tools/packaging_test
+
+.PHONY: integration-test
+integration-test:
+	cd internal/cmd/integration-tests && $(GO_ENV) go run .
 
 #
 # Targets for building binaries
 #
 
-.PHONY: binaries agent agent-boringcrypto agent-flow agentctl operator crow smoke
-binaries: agent agent-boringcrypto agent-flow agentctl operator crow smoke
+.PHONY: binaries agent agent-boringcrypto agent-flow agentctl operator
+binaries: agent agent-boringcrypto agent-flow agentctl operator
 
 agent:
 ifeq ($(USE_CONTAINER),1)
@@ -197,6 +192,13 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	GOEXPERIMENT=boringcrypto $(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BORINGCRYPTO_BINARY) ./cmd/grafana-agent
+endif
+
+agent-flow-windows-boringcrypto:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	GOEXPERIMENT=cngcrypto $(GO_ENV) go build $(GO_FLAGS) -tags cngcrypto -o $(AGENT_BORINGCRYPTO_WINDOWS_BINARY) ./cmd/grafana-agent-flow
 endif
 
 
@@ -229,25 +231,11 @@ else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(OPERATOR_BINARY) ./cmd/grafana-agent-operator
 endif
 
-crow:
-ifeq ($(USE_CONTAINER),1)
-	$(RERUN_IN_CONTAINER)
-else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(CROW_BINARY) ./tools/crow
-endif
-
-smoke:
-ifeq ($(USE_CONTAINER),1)
-	$(RERUN_IN_CONTAINER)
-else
-	$(GO_ENV) go build $(GO_FLAGS) -o $(SMOKE_BINARY) ./tools/smoke
-endif
-
 agentlint:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cd ./tools/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../$(AGENTLINT_BINARY) .
+	cd ./internal/cmd/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../../$(AGENTLINT_BINARY) .
 endif
 
 #
@@ -260,8 +248,8 @@ ifneq ($(DOCKER_PLATFORM),)
 DOCKER_FLAGS += --platform=$(DOCKER_PLATFORM)
 endif
 
-.PHONY: images agent-image agentctl-image operator-image crow-image smoke-image
-images: agent-image agentctl-image operator-image crow-image smoke-image
+.PHONY: images agent-image agentctl-image operator-image
+images: agent-image agentctl-image operator-image agent-boringcrypto-image
 
 agent-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/grafana-agent/Dockerfile .
@@ -271,24 +259,20 @@ agent-boringcrypto-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) --build-arg GOEXPERIMENT=boringcrypto -t $(AGENT_BORINGCRYPTO_IMAGE) -f cmd/grafana-agent/Dockerfile .
 operator-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/grafana-agent-operator/Dockerfile .
-crow-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(CROW_IMAGE) -f tools/crow/Dockerfile .
-smoke-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(SMOKE_IMAGE) -f tools/smoke/Dockerfile .
 
 #
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
-generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
+.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-dashboards generate-protos generate-ui generate-versioned-files
+generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-dashboards generate-protos generate-ui generate-versioned-files generate-docs
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	bash ./tools/generate-crds.bash
-	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/pkg/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
+	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/static/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
 endif
 
 generate-drone:
@@ -308,13 +292,6 @@ else
 	bash ./operations/helm/scripts/rebuild-tests.sh
 endif
 
-generate-manifests:
-ifeq ($(USE_CONTAINER),1)
-	$(RERUN_IN_CONTAINER)
-else
-	cd production/kubernetes/build && bash build.sh
-endif
-
 generate-dashboards:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
@@ -327,16 +304,29 @@ generate-protos:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	go generate ./pkg/agentproto/
+	go generate ./static/agentproto/
 endif
 
 generate-ui:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cd ./web/ui && yarn --network-timeout=1200000 && yarn run build
+	cd ./internal/web/ui && yarn --network-timeout=1200000 && yarn run build
 endif
 
+generate-versioned-files:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	sh ./tools/gen-versioned-files/gen-versioned-files.sh
+endif
+
+generate-docs:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	go generate ./docs
+endif
 #
 # Other targets
 #
@@ -362,14 +352,10 @@ info:
 	@printf "AGENT_IMAGE     = $(AGENT_IMAGE)\n"
 	@printf "AGENTCTL_IMAGE  = $(AGENTCTL_IMAGE)\n"
 	@printf "OPERATOR_IMAGE  = $(OPERATOR_IMAGE)\n"
-	@printf "CROW_IMAGE      = $(CROW_IMAGE)\n"
-	@printf "SMOKE_IMAGE     = $(SMOKE_IMAGE)\n"
 	@printf "BUILD_IMAGE     = $(BUILD_IMAGE)\n"
 	@printf "AGENT_BINARY    = $(AGENT_BINARY)\n"
 	@printf "AGENTCTL_BINARY = $(AGENTCTL_BINARY)\n"
 	@printf "OPERATOR_BINARY = $(OPERATOR_BINARY)\n"
-	@printf "CROW_BINARY     = $(CROW_BINARY)\n"
-	@printf "SMOKE_BINARY    = $(SMOKE_BINARY)\n"
 	@printf "GOOS            = $(GOOS)\n"
 	@printf "GOARCH          = $(GOARCH)\n"
 	@printf "GOARM           = $(GOARM)\n"

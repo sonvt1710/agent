@@ -3,18 +3,22 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/module.git/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.git/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.git/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/module.git/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.git/
-labels:
-  stage: beta
-title: module.git
 description: Learn about module.git
+title: module.git
 ---
 
-# module.git
+# module.git (deprecated)
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< admonition type="caution" >}}
+Starting with release v0.40, `module.git` is deprecated and is replaced by `import.git`.
+`module.git` will be removed in a future release.
+{{< /admonition >}}
 
-`module.git` is a *module loader* component. A module loader is a Grafana Agent Flow
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
+
+`module.git` is a *module loader* component. A module loader is a {{< param "PRODUCT_NAME" >}}
 component which retrieves a [module][] and runs the components defined inside of it.
 
 `module.git` retrieves a module source from a file in a Git repository.
@@ -40,12 +44,12 @@ module.git "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`repository` | `string` | The Git repository address to retrieve the module from. | | yes
-`revision` | `string` | The Git revision to retrieve the module from. | `"HEAD"` | no
-`path` | `string` | The path in the repository where the module is stored. | | yes
-`pull_frequency` | `duration` | The frequency to pull the repository for updates. | `"60s"` | no
+Name             | Type       | Description                                             | Default  | Required
+-----------------|------------|---------------------------------------------------------|----------|---------
+`repository`     | `string`   | The Git repository address to retrieve the module from. |          | yes
+`revision`       | `string`   | The Git revision to retrieve the module from.           | `"HEAD"` | no
+`path`           | `string`   | The path in the repository where the module is stored.  |          | yes
+`pull_frequency` | `duration` | The frequency to pull the repository for updates.       | `"60s"`  | no
 
 The `repository` attribute must be set to a repository address that would be
 recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
@@ -77,7 +81,7 @@ arguments | [arguments][] | Arguments to pass to the module. | no
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### ssh_key block
 
@@ -132,7 +136,7 @@ and most recent load of the module was successful.
 * The full SHA of the currently checked out revision.
 * The most recent error when trying to fetch the repository, if any.
 
-### Debug metrics
+## Debug metrics
 
 `module.git` does not expose any component-specific debug metrics.
 

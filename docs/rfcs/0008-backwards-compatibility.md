@@ -3,7 +3,6 @@
 * Date: 2023-05-25
 * Author: Robert Fratto (@rfratto)
 * PR: [grafana/agent#3981](https://github.com/grafana/agent/pull/3981)
-* Status: Draft
 
 Grafana Agent has been following [semantic versioning](https://semver.org/) since its inception.
 After three years of development and 33 minor releases, the project is on trajectory to have a 1.0 release. 
@@ -63,6 +62,8 @@ It's impossible to guarantee that full backwards compatibility is achieved. Ther
 - Upstream dependencies: part of the public API of Grafana Agent may directly expose the public API of an upstream dependency. In these cases, if an upstream dependency introduces a breaking change, we may be required to make a breaking change to our public API as well.   
 
 - Other telemetry data: metrics, logs, and traces may change between releases. Only telemetry data which is used in official dashboards is protected under backwards compatibility.
+
+- Tagged as exempt: functionality which is explicitly marked as exempt from backwards compatibility guarantees may include breaking changes or removal between minor releases.
 
 ### Avoiding major release burnout 
 

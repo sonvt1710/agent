@@ -7,31 +7,22 @@ alert.newGroup(
     alert.newRule(
       'ClusterNotConverging',
       'stddev by (cluster, namespace) (sum without (state) (cluster_node_peers)) != 0',
-      'Cluster is not converging.',
-      '5m',
+      'Cluster is not converging: nodes report different number of peers in the cluster.',
+      '10m',
     ),
 
-    // Cluster has entered a split brain state.
     alert.newRule(
-      'ClusterSplitBrain',
-      // Assert that the set of known peers (regardless of state) for an
-      // agent matches the same number of running agents in the same cluster
-      // and namespace.
+      'ClusterNodeCountMismatch',
+      // Assert that the number of known peers (regardless of state) reported by each
+      // agent matches the number of running agents in the same cluster
+      // and namespace as reported by a count of Prometheus metrics.
       |||
         sum without (state) (cluster_node_peers) !=
         on (cluster, namespace) group_left
         count by (cluster, namespace) (cluster_node_info)
       |||,
-      'Cluster nodes have entered a split brain state.',
-      '5m',
-    ),
-
-    // Standard Deviation of Lamport clock time between nodes is too high.
-    alert.newRule(
-      'ClusterLamportClockDrift',
-      'stddev by (cluster, namespace) (cluster_node_lamport_time) > 4 * sqrt(count by (cluster, namespace) (cluster_node_info))',
-      "Cluster nodes' lamport clocks are not converging.",
-      '5m'
+      'Nodes report different number of peers vs. the count of observed agent metrics. Some agent metrics may be missing or the cluster is in a split brain state.',
+      '15m',
     ),
 
     // Nodes health score is not zero.
@@ -40,23 +31,8 @@ alert.newGroup(
       |||
         cluster_node_gossip_health_score > 0
       |||,
-      'Cluster node is reporting a health score > 0.',
-      '5m',
-    ),
-
-    // Lamport clock of a node is not progressing at all.
-    //
-    // This only checks for nodes that have peers other than themselves; nodes
-    // with no external peers will not increase their lamport time because
-    // there is no cluster networking traffic.
-    alert.newRule(
-      'ClusterLamportClockStuck',
-      |||
-        sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[2m])) == 0
-        and on (cluster, namespace, instance) (cluster_node_peers > 1)
-      |||,
-      "Cluster nodes's lamport clocks is not progressing.",
-      '5m',
+      'Cluster node is reporting a gossip protocol health score > 0.',
+      '10m',
     ),
 
     // Node tried to join the cluster with an already-present node name.
@@ -72,7 +48,7 @@ alert.newGroup(
       'ClusterNodeStuckTerminating',
       'sum by (cluster, namespace, instance) (cluster_node_peers{state="terminating"}) > 0',
       'Cluster node stuck in Terminating state.',
-      '5m',
+      '10m',
     ),
 
     // Nodes are not using the same configuration file.
@@ -86,8 +62,5 @@ alert.newGroup(
       'Cluster nodes are not using the same configuration file.',
       '5m',
     ),
-
-    // TODO(@tpaschalis) Alert on open transport streams once we investigate
-    // their behavior.
   ]
 )

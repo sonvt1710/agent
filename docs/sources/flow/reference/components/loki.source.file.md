@@ -1,11 +1,12 @@
 ---
 aliases:
-  - /docs/grafana-cloud/agent/flow/reference/components/loki.source.file/
-  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file/
-  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.file/
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.file/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.file/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.file/
-title: loki.source.file
 description: Learn about loki.source.file
+title: loki.source.file
 ---
 
 # loki.source.file
@@ -16,9 +17,9 @@ description: Learn about loki.source.file
 Multiple `loki.source.file` components can be specified by giving them
 different labels.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `loki.source.file` does not handle file discovery. You can use `local.file_match` for file discovery. Refer to the [File Globbing](#file-globbing) example for more information.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 
@@ -36,12 +37,13 @@ log entries to the list of receivers passed in `forward_to`.
 
 `loki.source.file` supports the following arguments:
 
-| Name            | Type                 | Description                                                                         | Default | Required |
-| --------------- | -------------------- | ----------------------------------------------------------------------------------- | ------- | -------- |
-| `targets`       | `list(map(string))`  | List of files to read from.                                                         |         | yes      |
-| `forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to.                                           |         | yes      |
-| `encoding`      | `string`             | The encoding to convert from when reading files.                                    | `""`    | no       |
-| `tail_from_end` | `bool`               | Whether a log file should be tailed from the end if a stored position is not found. | `false` | no       |
+| Name                    | Type                 | Description                                                                         | Default | Required |
+| ------------------------| -------------------- | ----------------------------------------------------------------------------------- | ------- | -------- |
+| `targets`               | `list(map(string))`  | List of files to read from.                                                         |         | yes      |
+| `forward_to`            | `list(LogsReceiver)` | List of receivers to send log entries to.                                           |         | yes      |
+| `encoding`              | `string`             | The encoding to convert from when reading files.                                    | `""`    | no       |
+| `tail_from_end`         | `bool`               | Whether a log file should be tailed from the end if a stored position is not found. | `false` | no       |
+| `legacy_positions_file` | `string`      | Allows conversion from legacy positions file.                                      | `""`    | no       |
 
 The `encoding` argument must be a valid [IANA encoding][] name. If not set, it
 defaults to UTF-8.
@@ -49,19 +51,28 @@ defaults to UTF-8.
 You can use the `tail_from_end` argument when you want to tail a large file without reading its entire content.
 When set to true, only new logs will be read, ignoring the existing ones.
 
+
+{{< admonition type="note" >}}
+The `legacy_positions_file` argument is used when you are transitioning from legacy. The legacy positions file will be rewritten into the new format.
+This operation will only occur if the new positions file does not exist and the `legacy_positions_file` is valid.
+Once converted successfully, the `legacy_positions_file` will be deleted.
+If you add any labels before `loki.source.file`, then the positions file will conversion will not work.
+The legacy positions file did not have a concept of labels in the positions file, so the conversion assumes no labels.
+{{< /admonition >}}
+
 ## Blocks
 
 The following blocks are supported inside the definition of `loki.source.file`:
 
 | Hierarchy      | Name               | Description                                                       | Required |
 | -------------- | ------------------ | ----------------------------------------------------------------- | -------- |
-| decompresssion | [decompresssion][] | Configure reading logs from compressed files.                     | no       |
+| decompression  | [decompression][] | Configure reading logs from compressed files.                     | no       |
 | file_watch     | [file_watch][]     | Configure how often files should be polled from disk for changes. | no       |
 
-[decompresssion]: #decompresssion-block
+[decompression]: #decompression-block
 [file_watch]: #file_watch-block
 
-### decompresssion block
+### decompression block
 
 The `decompression` block contains configuration for reading logs from
 compressed files. The following arguments are supported:
@@ -142,14 +153,18 @@ the component reads. All other labels starting with a double underscore are
 considered _internal_ and are removed from the log entries before they're
 passed to other `loki.*` components.
 
-The component uses its data path (a directory named after the domain's
-fully qualified name) to store its _positions file_. The positions file is used
-to store read offsets, so that in case of a component or Agent restart,
+The component uses its data path, a directory named after the domain's
+fully qualified name, to store its _positions file_. The positions file is used
+to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
 `loki.source.file` can pick up tailing from the same spot.
+
+The data path is inside the directory configured by the `--storage.path` [command line argument][cmd-args].
 
 If a file is removed from the `targets` list, its positions file entry is also
 removed. When it's added back on, `loki.source.file` starts reading it from the
 beginning.
+
+[cmd-args]: {{< relref "../cli/run.md" >}}
 
 ## Examples
 
@@ -233,3 +248,20 @@ loki.write "local" {
 ```
 
 [IANA encoding]: https://www.iana.org/assignments/character-sets/character-sets.xhtml
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.file` can accept arguments from the following components:
+
+- Components that export [Targets](../../compatibility/#targets-exporters)
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
+
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

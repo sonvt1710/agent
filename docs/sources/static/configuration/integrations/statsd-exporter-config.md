@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/statsd-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/statsd-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/statsd-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/statsd-exporter-config/
-title: statsd_exporter_config
 description: Learn about statsd_exporter_config
+title: statsd_exporter_config
 ---
 
 # statsd_exporter_config
@@ -119,7 +121,7 @@ Full reference of options:
   # specifies the destination to forward your metrics.
 
   # Note that it must be a UDP endpoint in the format 'host:port'.
-  [relay_address: <string>]
+  [relay_addr: <string>]
 
   # Maximum relay output packet length to avoid fragmentation.
   [relay_packet_length: <int> | default = 1400]

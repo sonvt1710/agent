@@ -2,11 +2,24 @@
 aliases:
 - ../../set-up/install-agent-macos/
 - ../set-up/install-agent-macos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-macos/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-macos/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-macos/
+description: Learn how to install Grafana Agent in static mode on macOS
 menuTitle: macOS
 title: Install Grafana Agent in static mode on macOS
-description: Learn how to install Grafana Agent in static mode on macOS
 weight: 500
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file/
+    - pattern: /docs/grafana-cloud/
+      destination: ../../configuration/create-config-file/
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: ../start-agent/
 ---
 
 # Install Grafana Agent in static mode on macOS
@@ -17,9 +30,9 @@ You can install Grafana Agent in static mode on macOS with Homebrew.
 
 Install [Homebrew][] on your computer.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. To verify the default prefix for Homebrew on your computer, open a terminal window and type `brew --prefix`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 [Homebrew]: https://brew.sh
 
@@ -72,20 +85,14 @@ brew uninstall grafana-agent
     touch $(brew --prefix)/etc/grafana-agent/config.yml
     ```
 
-1. Edit `$(brew --prefix)/etc/grafana-agent/config.yml` and add the configuration blocks for your specific telemetry needs. Refer to [Configure Grafana Agent][configure] for more information.
+1. Edit `$(brew --prefix)/etc/grafana-agent/config.yml` and add the configuration blocks for your specific telemetry needs. Refer to [Configure Grafana Agent](ref:configure) for more information.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud integration. Refer to [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
-{{%/admonition %}}
+{{< /admonition >}}
 
 ## Next steps
 
-- [Start Grafana Agent][start]
-- [Configure Grafana Agent][configure]
+- [Start Grafana Agent](ref:start)
+- [Configure Grafana Agent](ref:configure)
 
-{{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
-[start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
-[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
-{{% /docs/reference %}}

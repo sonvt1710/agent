@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.digitalocean/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.digitalocean/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.digitalocean/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.digitalocean/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.digitalocean/
-title: discovery.digitalocean
 description: Learn about discovery.digitalocean
+title: discovery.digitalocean
 ---
 
 # discovery.digitalocean
@@ -28,15 +29,18 @@ discovery.digitalocean "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type       | Description                                                                      | Default | Required
-------------------- | ---------- | ---------------------------------------------------------------------- | ------- | --------
-`port`              | `number`   | Port to be appended to the `__address__` label for each Droplet.       | `80`    | no
-`refresh_interval`  | `duration` | Frequency to refresh list of Droplets.                                 | `"1m"`  | no
-`bearer_token`      | `secret`   | Bearer token to authenticate with.                                     |         | no
-`bearer_token_file` | `string`   | File containing a bearer token to authenticate with.                   |         | no
-`proxy_url`         | `string`   | HTTP proxy to proxy requests through.                                  |         | no
-`follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed.           | `true`  | no
-`enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                               | `true`  | no
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`port`                   | `number`            | Port to be appended to the `__address__` label for each Droplet. | `80` | no
+`refresh_interval`       | `duration`          | Frequency to refresh list of Droplets.                        | `"1m"`  | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
 
 The DigitalOcean API uses bearer tokens for authentication, see more about it in the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#section/Authentication).
 
@@ -44,9 +48,10 @@ Exactly one of the [`bearer_token`](#arguments) and [`bearer_token_file`](#argum
 
 [arguments]: #arguments
 
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+
 ## Blocks
-The `discovery.digitalocean` component does not support any blocks, and is configured 
-fully through arguments.
+The `discovery.digitalocean` component does not support any blocks, and is configured fully through arguments.
 
 
 ## Exported fields
@@ -85,7 +90,7 @@ values.
 
 `discovery.digitalocean` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.digitalocean` does not expose any component-specific debug metrics.
 
@@ -119,3 +124,18 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.digitalocean` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

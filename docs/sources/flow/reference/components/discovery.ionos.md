@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.ionos/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.ionos/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.ionos/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.ionos/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ionos/
-title: discovery.ionos
 description: Learn about discovery.ionos
+title: discovery.ionos
 ---
 
 # discovery.ionos
@@ -26,14 +27,30 @@ discovery.ionos "LABEL" {
 
 The following arguments are supported:
 
-| Name               | Type       | Description                                                  | Default | Required |
-| ------------------ | ---------- | ------------------------------------------------------------ | ------- | -------- |
-| `datacenter_id`    | `string`   | The unique ID of the data center.                            |         | yes      |
-| `refresh_interval` | `duration` | The time after which the servers are refreshed.              | `60s`   | no       |
-| `port`             | `int`      | The port to scrap metrics from.                              | 80      | no       |
-| `proxy_url`        | `string`   | HTTP proxy to proxy requests through.                        |         | no       |
-| `enable_http2`     | `bool`     | Whether HTTP2 is supported for requests.                     | `true`  | no       |
-| `follow_redirects` | `bool`     | Whether redirects returned by the server should be followed. | `true`  | no       |
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`datacenter_id`          | `string`            | The unique ID of the data center.                             |         | yes
+`refresh_interval`       | `duration`          | The time after which the servers are refreshed.               | `60s`   | no
+`port`                   | `int`               | The port to scrape metrics from.                              | 80      | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+
+ At most, one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments).
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+[arguments]: #arguments
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 
@@ -46,6 +63,7 @@ The following blocks are supported inside the definition of
 | authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
 | oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
 | oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -58,19 +76,19 @@ an `oauth2` block.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -106,7 +124,7 @@ values.
 
 `discovery.ionos` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.ionos` does not expose any component-specific debug metrics.
 
@@ -139,3 +157,18 @@ Replace the following:
 - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - `USERNAME`: The username to use for authentication to the remote_write API.
 - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.ionos` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

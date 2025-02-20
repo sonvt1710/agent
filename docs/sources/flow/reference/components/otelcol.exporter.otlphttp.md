@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.otlphttp/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.otlphttp/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.otlphttp/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlphttp/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.otlphttp/
-title: otelcol.exporter.otlphttp
 description: Learn about otelcol.exporter.otlphttp
+title: otelcol.exporter.otlphttp
 ---
 
 # otelcol.exporter.otlphttp
@@ -72,50 +73,61 @@ The `client` block configures the HTTP client used by the component.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`endpoint`           | `string`      | The target URL to send telemetry data to. | | yes
-`read_buffer_size`   | `string`      | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
-`write_buffer_size`  | `string`      | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
-`timeout`            | `duration`    | Time to wait before marking a request as failed. | `"30s"` | no
-`headers`            | `map(string)` | Additional headers to send with the request. | `{}` | no
-`compression`        | `string`      | Compression mechanism to use for requests. | `"gzip"` | no
-`max_idle_conns`     | `int`         | Limits the number of idle HTTP connections the client can keep open. | `100` | no
-`max_idle_conns_per_host` | `int`    | Limits the number of idle HTTP connections the host can keep open. | `0` | no
-`max_conns_per_host` | `int`         | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
-`idle_conn_timeout`  | `duration`    | Time to wait before an idle connection closes itself. | `"90s"` | no
-`disable_keep_alives`| `bool`        | Disable HTTP keep-alive. | `false` | no
-`auth`               | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
+Name                      | Type                       | Description | Default | Required
+------------------------- | -------------------------- | ----------- | ------- | --------
+`endpoint`                | `string`                   | The target URL to send telemetry data to. | | yes
+`encoding`                | `string`                   | The encoding to use for messages. Should be either `"proto"` or `"json"`. | `"proto"` | no
+`read_buffer_size`        | `string`                   | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
+`write_buffer_size`       | `string`                   | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
+`timeout`                 | `duration`                 | Time to wait before marking a request as failed. | `"30s"` | no
+`headers`                 | `map(string)`              | Additional headers to send with the request. | `{}` | no
+`compression`             | `string`                   | Compression mechanism to use for requests. | `"gzip"` | no
+`max_idle_conns`          | `int`                      | Limits the number of idle HTTP connections the client can keep open. | `100` | no
+`max_idle_conns_per_host` | `int`                      | Limits the number of idle HTTP connections the host can keep open. | `0` | no
+`max_conns_per_host`      | `int`                      | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
+`idle_conn_timeout`       | `duration`                 | Time to wait before an idle connection closes itself. | `"90s"` | no
+`disable_keep_alives`     | `bool`                     | Disable HTTP keep-alive. | `false` | no
+`http2_read_idle_timeout` | `duration`                 | Timeout after which a health check using ping frame will be carried out if no frame is received on the connection. | `0s` | no
+`http2_ping_timeout`      | `duration`                 | Timeout after which the connection will be closed if a response to Ping is not received. | `15s` | no
+`auth`                    | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
+
+When setting `headers`, note that:
+  - Certain headers such as `Content-Length` and `Connection` are automatically written when needed and values in `headers` may be ignored.
+  - The `Host` header is automatically derived from the `endpoint` value. However, this automatic assignment can be overridden by explicitly setting a `Host` header in `headers`.
 
 Setting `disable_keep_alives` to `true` will result in significant overhead establishing a new HTTP(s) connection for every request.
 Before enabling this option, consider whether changes to idle connection settings can achieve your goal.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
+If `http2_ping_timeout` is unset or set to `0s`, it will default to `15s`.
+
+If `http2_read_idle_timeout` is unset or set to `0s`, then no health check will be performed.
+
+{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls block
 
 The `tls` block configures TLS settings used for the connection to the HTTP
 server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### sending_queue block
 
 The `sending_queue` block configures an in-memory buffer of batches before data is sent
 to the HTTP server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### retry_on_failure block
 
 The `retry_on_failure` block configures how failed requests to the HTTP server are
 retried.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### debug_metrics block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -154,3 +166,17 @@ otelcol.exporter.otlphttp "tempo" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.exporter.otlphttp` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

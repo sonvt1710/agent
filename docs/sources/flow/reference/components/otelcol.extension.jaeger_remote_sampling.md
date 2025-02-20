@@ -3,16 +3,17 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
+description: Learn about otelcol.extension.jaeger_remote_sampling
 label:
   stage: experimental
 title: otelcol.extension.jaeger_remote_sampling
-description: Learn about otelcol.extension.jaeger_remote_sampling
 ---
 
 # otelcol.extension.jaeger_remote_sampling
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.extension.jaeger_remote_sampling` serves a specified Jaeger remote sampling
 document.
@@ -91,17 +92,7 @@ Name | Type | Description | Default | Required
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | Path to the CA file. | | no
-`cert_file` | `string` | Path to the TLS certificate. | | no
-`key_file` | `string` | Path to the TLS certificate key. | | no
-`min_version` | `string` | Minimum acceptable TLS version for connections. | `"TLS 1.2"` | no
-`max_version` | `string` | Maximum acceptable TLS version for connections. | `"TLS 1.3"` | no
-`reload_interval` | `duration` | Frequency to reload the certificates. | | no
-`client_ca_file` | `string` | Path to the CA file used to authenticate client certificates. | | no
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### cors block
 
@@ -211,11 +202,11 @@ Name | Type | Description | Default | Required
 `authority` | `string` | Overrides the default `:authority` header in gRPC requests from the gRPC client. | | no
 `auth` | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
-{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT_VERSION>" >}}
 
-{{< docs/shared lookup="flow/reference/components/otelcol-grpc-balancer-name.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-grpc-balancer-name.md" source="agent" version="<AGENT_VERSION>" >}}
 
-{{< docs/shared lookup="flow/reference/components/otelcol-grpc-authority.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-grpc-authority.md" source="agent" version="<AGENT_VERSION>" >}}
 
 An HTTP proxy can be configured through the following environment variables:
 
@@ -244,7 +235,7 @@ able to handle and proxy HTTP/2 traffic.
 The `tls` block configures TLS settings used for the connection to the gRPC
 server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### keepalive client block
 

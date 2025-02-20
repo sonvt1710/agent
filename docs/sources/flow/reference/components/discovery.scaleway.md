@@ -1,7 +1,10 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.scaleway/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.scaleway/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.scaleway/
-title: discovery.scaleway
 description: Learn about discovery.scaleway
+title: discovery.scaleway
 ---
 
 # discovery.scaleway
@@ -40,7 +43,10 @@ Name | Type | Description | Default | Required
 `tags_filter` | `list(string)` | List of tags to search for. | | no
 `refresh_interval` | `duration` | Frequency to rediscover targets. | `"60s"` | no
 `port` | `number` | Default port on servers to associate with generated targets. | `80` | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`proxy_url` | `string` | HTTP proxy to send requests through. | | no
+`no_proxy` | `string` | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool` | Use the proxy URL indicated by environment variables. | `false` | no
+`proxy_connect_header` | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. | | no
 `follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
@@ -54,6 +60,8 @@ The `name_filter` and `tags_filter` arguments can be used to filter the set of
 discovered servers. `name_filter` returns machines matching a specific name,
 while `tags_filter` returns machines who contain _all_ the tags listed in the
 `tags_filter` argument.
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 
@@ -72,7 +80,7 @@ an `oauth2` block.
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -131,7 +139,7 @@ values.
 
 `discovery.scaleway` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.scaleway` does not expose any component-specific debug metrics.
 
@@ -171,3 +179,18 @@ Replace the following:
 * `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
 * `USERNAME`: The username to use for authentication to the remote_write API.
 * `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.scaleway` has exports that can be consumed by the following components:
+
+- Components that consume [Targets](../../compatibility/#targets-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

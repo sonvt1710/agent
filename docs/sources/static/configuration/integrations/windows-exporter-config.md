@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/windows-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/windows-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/windows-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config/
-title: windows_exporter_config
 description: Learn about windows_exporter_config
+title: windows_exporter_config
 ---
 
 # windows_exporter_config
@@ -60,7 +62,7 @@ Full reference of options:
 
   # List of collectors to enable. Any non-experimental collector from the
   # embedded version of windows_exporter can be enabled here.
-  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system,textfile"]
+  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system"]
 
   # Settings for collectors which accept configuration. Settings specified here
   # are only used if the corresponding collector is enabled in
@@ -111,6 +113,25 @@ Full reference of options:
     # "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.
     # Maps to collector.service.services-where in windows_exporter
     [where_clause: <string> | default=""]
+    # If "use_api" is set to "true", service data will be collected via the Windows API.
+    # If "use_api" is set to "false", service data will be collected via WMI.
+    # When "use_api" is set to "true", "where_clause" will be ignored and will not take effect.
+    # The Windows API is more performant than WMI. Set `use_api` to `true` in situations when the WMI takes too long to get the service information.
+    # Setting `use_api` to `true` does have a few disadvantages compared to using WMI:
+    # * WMI queries in `where_clause` won't work.
+    # * The `status` field of the service won't be reported. Instead, use the `state` property. 
+    #   It has the same information, albeit formatted differently.
+    [use_api: <boolean> | default = false]
+
+  # Configuration for physical disk on Windows 
+  physical_disk:
+    # Regexp of volumes to include. Disk name must both match include and not match exclude to be included.
+    # Maps to collector.logical_disk.disk-include in windows_exporter.
+    [include: <string> | default=".+"]
+
+    # Regexp of volumes to exclude. Disk name must both match include and not match exclude to be included.
+    # Maps to collector.logical_disk.disk-exclude in windows_exporter.
+    [exclude: <string> | default=".+"]
 
   # Configuration for Windows Processes
   process:
@@ -153,4 +174,11 @@ Full reference of options:
     # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
     # Maps to collector.logical_disk.volume-blacklist in windows_exporter
     [blacklist: <string> | default=".+"]
+
+  # Configuration for Windows Task Scheduler
+  scheduled_task:
+    # Regexp of tasks to include.
+    [include: <string> | default ".+"]
+    #Regexp of tasks to exclude.
+    [exclude: <string> | default ""]
 ```

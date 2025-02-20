@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.process/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.process/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.process/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.process/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.process/
-title: loki.process
 description: Learn about loki.process
+title: loki.process
 ---
 
 # loki.process
@@ -50,45 +51,52 @@ loki.process "LABEL" {
 
 The following blocks are supported inside the definition of `loki.process`:
 
-| Hierarchy                 | Block                         | Description                                          | Required |
-|---------------------------|-------------------------------|------------------------------------------------------| -------- |
-| stage.cri                 | [stage.cri][]                 | Configures a pre-defined CRI-format pipeline.        | no       |
-| stage.docker              | [stage.docker][]              | Configures a pre-defined Docker log format pipeline. | no       |
-| stage.drop                | [stage.drop][]                | Configures a `drop` processing stage.                | no       |
-| stage.json                | [stage.json][]                | Configures a JSON processing stage.                  | no       |
-| stage.label_drop          | [stage.label_drop][]          | Configures a `label_drop` processing stage.          | no       |
-| stage.label_keep          | [stage.label_keep][]          | Configures a `label_keep` processing stage.          | no       |
-| stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.                | no       |
-| stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.   | no       |
-| stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.               | no       |
-| stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.                | no       |
-| stage.match               | [stage.match][]               | Configures a `match` processing stage.               | no       |
-| stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                        | no       |
-| stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.           | no       |
-| stage.output              | [stage.output][]              | Configures an `output` processing stage.             | no       |
-| stage.pack                | [stage.pack][]                | Configures a `pack` processing stage.                | no       |
-| stage.regex               | [stage.regex][]               | Configures a `regex` processing stage.               | no       |
-| stage.replace             | [stage.replace][]             | Configures a `replace` processing stage.             | no       |
-| stage.static_labels       | [stage.static_labels][]       | Configures a `static_labels` processing stage.       | no       |
-| stage.template            | [stage.template][]            | Configures a `template` processing stage.            | no       |
-| stage.tenant              | [stage.tenant][]              | Configures a `tenant` processing stage.              | no       |
-| stage.timestamp           | [stage.timestamp][]           | Configures a `timestamp` processing stage.           | no       |
-| stage.geoip               | [stage.geoip][]               | Configures a `geoip` processing stage.               | no       |
+| Hierarchy                 | Block                         | Description                                                    | Required |
+|---------------------------|-------------------------------|----------------------------------------------------------------|----------|
+| stage.cri                 | [stage.cri][]                 | Configures a pre-defined CRI-format pipeline.                  | no       |
+| stage.decolorize          | [stage.decolorize][]          | Strips ANSI color codes from log lines.                        | no       |
+| stage.docker              | [stage.docker][]              | Configures a pre-defined Docker log format pipeline.           | no       |
+| stage.drop                | [stage.drop][]                | Configures a `drop` processing stage.                          | no       |
+| stage.eventlogmessage     | [stage.eventlogmessage][]     | Extracts data from the Message field in the Windows Event Log. | no       |
+| stage.geoip               | [stage.geoip][]               | Configures a `geoip` processing stage.                         | no       |
+| stage.json                | [stage.json][]                | Configures a JSON processing stage.                            | no       |
+| stage.label_drop          | [stage.label_drop][]          | Configures a `label_drop` processing stage.                    | no       |
+| stage.label_keep          | [stage.label_keep][]          | Configures a `label_keep` processing stage.                    | no       |
+| stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.                        | no       |
+| stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.                         | no       |
+| stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.                        | no       |
+| stage.luhn                | [stage.luhn][]                | Configures a `luhn` processing stage.                          | no       |
+| stage.match               | [stage.match][]               | Configures a `match` processing stage.                         | no       |
+| stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                                  | no       |
+| stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.                     | no       |
+| stage.output              | [stage.output][]              | Configures an `output` processing stage.                       | no       |
+| stage.pack                | [stage.pack][]                | Configures a `pack` processing stage.                          | no       |
+| stage.regex               | [stage.regex][]               | Configures a `regex` processing stage.                         | no       |
+| stage.replace             | [stage.replace][]             | Configures a `replace` processing stage.                       | no       |
+| stage.sampling            | [stage.sampling][]            | Samples logs at a given rate.                                  | no       |
+| stage.static_labels       | [stage.static_labels][]       | Configures a `static_labels` processing stage.                 | no       |
+| stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.             | no       |
+| stage.template            | [stage.template][]            | Configures a `template` processing stage.                      | no       |
+| stage.tenant              | [stage.tenant][]              | Configures a `tenant` processing stage.                        | no       |
+| stage.timestamp           | [stage.timestamp][]           | Configures a `timestamp` processing stage.                     | no       |
 
 A user can provide any number of these stage blocks nested inside
 `loki.process`; these will run in order of appearance in the configuration
 file.
 
 [stage.cri]: #stagecri-block
+[stage.decolorize]: #stagedecolorize-block
 [stage.docker]: #stagedocker-block
 [stage.drop]: #stagedrop-block
+[stage.eventlogmessage]: #stageeventlogmessage-block
+[stage.geoip]: #stagegeoip-block
 [stage.json]: #stagejson-block
 [stage.label_drop]: #stagelabel_drop-block
 [stage.label_keep]: #stagelabel_keep-block
 [stage.labels]: #stagelabels-block
-[stage.structured_metadata]: #stagestructuredmetadata-block
 [stage.limit]: #stagelimit-block
 [stage.logfmt]: #stagelogfmt-block
+[stage.luhn]: #stageluhn-block
 [stage.match]: #stagematch-block
 [stage.metrics]: #stagemetrics-block
 [stage.multiline]: #stagemultiline-block
@@ -96,11 +104,12 @@ file.
 [stage.pack]: #stagepack-block
 [stage.regex]: #stageregex-block
 [stage.replace]: #stagereplace-block
+[stage.sampling]: #stagesampling-block
 [stage.static_labels]: #stagestatic_labels-block
+[stage.structured_metadata]: #stagestructuredmetadata-block
 [stage.template]: #stagetemplate-block
 [stage.tenant]: #stagetenant-block
 [stage.timestamp]: #stagetimestamp-block
-[stage.geoip]: #stagegeoip-block
 
 
 ### stage.cri block
@@ -141,6 +150,31 @@ stream: stdout
 timestamp: 2019-04-30T02:12:41.8443515
 ```
 
+### stage.decolorize block
+
+The `stage.decolorize` strips ANSI color codes from the log lines, thus making
+it easier to parse logs further.
+
+The `stage.decolorize` block does not support any arguments or inner blocks, so 
+it is always empty.
+
+```river
+stage.decolorize {}
+```
+
+`stage.decolorize` turns each line having a color code into a non-colored one, 
+for example:
+
+```
+[2022-11-04 22:17:57.811] \033[0;32http\033[0m: GET /_health (0 ms) 204
+```
+
+is turned into
+
+```
+[2022-11-04 22:17:57.811] http: GET /_health (0 ms) 204
+```
+
 ### stage.docker block
 
 The `stage.docker` inner block enables a predefined pipeline which reads log lines in
@@ -179,23 +213,32 @@ To drop entries with an OR clause, specify multiple `drop` blocks in sequence.
 
 The following arguments are supported:
 
-| Name                  | Type       | Description                                                                                                         | Default        | Required |
-| --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------- | -------------- | -------- |
-| `source`              | `string`   | Name from extracted data to parse. If empty or not defined, it uses the log message.                                | `""`           | no       |
-| `expression`          | `string`   | A valid RE2 regular expression.                                                                                     | `""`           | no       |
-| `value`               | `string`   | If both `source` and `value` are specified, the stage drops lines where `value` exactly matches the source content. | `""`           | no       |
-| `older_than`          | `duration` | If specified, the stage drops lines whose timestamp is older than the current time minus this duration.             | `""`           | no       |
-| `longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value.                                        | `""`           | no       |
-| `drop_counter_reason` | `string`   | A custom reason to report for dropped lines.                                                                        | `"drop_stage"` | no       |
+| Name                  | Type       | Description                                                                                                            | Default        | Required |
+|-----------------------|------------|------------------------------------------------------------------------------------------------------------------------|----------------|----------|
+| `source`              | `string`   | Name or comma-separated list of names from extracted data to match. If empty or not defined, it uses the log message.  | `""`           | no       |
+| `separator`           | `string`   | When `source` is a comma-separated list of names, this separator is placed between concatenated extracted data values. | `";"`          | no       |
+| `expression`          | `string`   | A valid RE2 regular expression.                                                                                        | `""`           | no       |
+| `value`               | `string`   | If both `source` and `value` are specified, the stage drops lines where `value` exactly matches the source content.    | `""`           | no       |
+| `older_than`          | `duration` | If specified, the stage drops lines whose timestamp is older than the current time minus this duration.                | `""`           | no       |
+| `longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value.                                           | `""`           | no       |
+| `drop_counter_reason` | `string`   | A custom reason to report for dropped lines.                                                                           | `"drop_stage"` | no       |
 
-The `expression` field needs to be a RE2 regex string. If `source` is empty or
-not provided, the regex attempts to match the log line itself. If source is
-provided, the regex attempts to match the corresponding value from the
-extracted map.
+The `expression` field must be a RE2 regex string.
+* If `source` is empty or not provided, the regex attempts to match the log 
+line itself. 
+* If `source` is a single name, the regex attempts to match the corresponding
+value from the extracted map. 
+* If `source` is a comma-separated list of names, the corresponding values from
+the extracted map are concatenated using `separator` and the regex attempts to
+match the concatenated string.
 
 The `value` field can only work with values from the extracted map, and must be
-specified together with `source`. Entries are dropped when there is an exact
-match between the two.
+specified together with `source`.
+* If `source` is a single name, the entries are dropped when there is an exact
+match between the corresponding value from the extracted map and the `value`.
+* If `source` is a comma-separated list of names, the entries are dropped when 
+the `value` matches the `source` values from extracted data, concatenated using 
+the `separator`.
 
 Whenever an entry is dropped, the metric `loki_process_dropped_lines_total`
 is incremented. By default, the reason label is `"drop_stage"`, but you can
@@ -231,6 +274,61 @@ stage.drop {
     value  = "foo"
 }
 ```
+
+### stage.eventlogmessage block
+
+The `eventlogmessage` stage extracts data from the Message string that appears
+in the Windows Event Log.
+
+The following arguments are supported:
+
+| Name                  | Type     | Description                                            | Default   | Required |
+|-----------------------|----------|--------------------------------------------------------|-----------|----------|
+| `source`              | `string` | Name of the field in the extracted data to parse.      | `message` | no       |
+| `overwrite_existing`  | `bool`   | Whether to overwrite existing extracted data fields.   | `false`   | no       |
+| `drop_invalid_labels` | `bool`   | Whether to drop fields that are not valid label names. | `false`   | no       |
+
+When `overwrite_existing` is set to `true`, the stage overwrites existing extracted data
+fields with the same name. If set to `false`, the `_extracted` suffix will be
+appended to an already existing field name.
+
+When `drop_invalid_labels` is set to `true`, the stage drops fields that are 
+not valid label names. If set to `false`, the stage will automatically convert
+them into valid labels replacing invalid characters with underscores.
+
+#### Example combined with `stage.json`
+
+```river
+stage.json {
+    expressions = { 
+        message = "", 
+        Overwritten = "",
+    }
+}
+
+stage.eventlogmessage {
+    source = "message"
+    overwrite_existing = true
+}
+```
+
+Given the following log line:
+```
+{"event_id": 1, "Overwritten": "old", "message": "Message type:\r\nOverwritten: new\r\nImage: C:\\Users\\User\\agent.exe"}
+```
+
+The first stage would create the following key-value pairs in the set of
+extracted data:
+
+- `message`: `Message type:\r\nOverwritten: new\r\nImage: C:\Users\User\agent.exe`
+- `Overwritten`: `old`
+
+The second stage will parse the value of `message` from the extracted data
+and append/overwrite the following key-value pairs to the set of extracted data:
+
+- `Image`: `C:\\Users\\User\\agent.exe`
+- `Message_type`: (empty string)
+- `Overwritten`: `new`
 
 ### stage.json block
 
@@ -285,6 +383,20 @@ following key-value pair to the set of extracted data.
 ```
 username: agent
 ```
+
+{{< admonition type="note" >}}
+Due to a limitation of the upstream jmespath library, you must wrap any string
+that contains a hyphen `-` in quotes so that it's not considered a numerical
+expression.
+	
+If you don't use quotes to wrap a string that contains a hyphen, you will get
+errors like: `Unexpected token at the end of the expression: tNumber`
+
+You can use one of two options to circumvent this issue:
+
+1. An escaped double quote. For example: `http_user_agent = "\"request_User-Agent\""`
+1. A backtick quote. For example: ``http_user_agent = `"request_User-Agent"` ``
+{{< /admonition >}}
 
 ### stage.label_drop block
 
@@ -456,6 +568,47 @@ set of extracted data, with the value of `user=foo`.
 The second stage parses the contents of `extra` and appends the `username: foo`
 key-value pair to the set of extracted data.
 
+### stage.luhn block
+
+The `stage.luhn` inner block configures a processing stage that reads incoming
+log lines and redacts strings that match a Luhn algorithm.
+
+The [Luhn algorithm][] is a simple checksum formula used to validate various
+identification numbers, such as credit card numbers, IMEI numbers, National
+Provider Identifier numbers in the US, and Canadian Social Insurance Numbers.
+Many Payment Card Industry environments require these numbers to be redacted.
+
+[Luhn algorithm]: https://en.wikipedia.org/wiki/Luhn_algorithm
+
+The following arguments are supported:
+
+| Name          | Type          | Description                                    | Default          | Required |
+| ------------- | ------------- | ---------------------------------------------- | ---------------- | -------- |
+| `replacement` | `string`      | String to substitute the matched patterns with | `"**REDACTED**"` | no      |
+| `source`      | `string`      | Source of the data to parse.                   | `""`             | no       |
+| `minLength`   | `int`         | Minimum length of digits to consider           | `13`             | no       |
+
+
+The `source` field defines the source of data to search. When `source` is
+missing or empty, the stage parses the log line itself, but it can also be used
+to parse a previously extracted value.
+
+The following example log line contains an approved credit card number.
+
+```
+time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="credit card approved 4032032513548443" extra="user=foo"
+
+stage.luhn {
+    replacement = "**DELETED**"
+}
+```
+
+The stage parses the log line, redacts the credit card number, and produces the following updated log line:
+
+```
+time=2012-11-01T22:08:41+00:00 app=loki level=INFO duration=125 message="credit card approved **DELETED**" extra="user=foo"
+```
+
 ### stage.match block
 
 The `stage.match` inner block configures a filtering stage that can conditionally
@@ -466,10 +619,14 @@ The following arguments are supported:
 
 | Name                  | Type     | Description                                                                                           | Default         | Required |
 | --------------------- | -------- | ----------------------------------------------------------------------------------------------------- | --------------- | -------- |
-| `selector`            | `string` | The LogQL stream selector and filter expressions to use.                                              |                 | yes      |
+| `selector`            | `string` | The LogQL stream selector and line filter expressions to use.                                         |                 | yes      |
 | `pipeline_name`       | `string` | A custom name to use for the nested pipeline.                                                         | `""`            | no       |
 | `action`              | `string` | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"`        | no       |
 | `drop_counter_reason` | `string` | A custom reason to report for dropped lines.                                                          | `"match_stage"` | no       |
+
+{{< admonition type="note" >}}
+The filters do not include label filter expressions such as `| label == "foobar"`.
+{{< /admonition >}}
 
 The `stage.match` block supports a number of `stage.*` inner blocks, like the top-level
 block. These are used to construct the nested set of stages to run if the
@@ -560,6 +717,10 @@ The following blocks are supported inside the definition of `stage.metrics`:
 | metric.gauge     | [metric.gauge][]     | Defines a `gauge` metric.     | no       |
 | metric.histogram | [metric.histogram][] | Defines a `histogram` metric. | no       |
 
+{{< admonition type="note" >}}
+The metrics will be reset if you reload the {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
+{{< /admonition >}}
+
 [metric.counter]: #metriccounter-block
 [metric.gauge]: #metricgauge-block
 [metric.histogram]: #metrichistogram-block
@@ -571,13 +732,13 @@ Defines a metric whose value only goes up.
 The following arguments are supported:
 
 | Name                | Type       | Description                                                                                              | Default                  | Required |
-| ------------------- | ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------ | -------- |
+|---------------------|------------|----------------------------------------------------------------------------------------------------------|--------------------------|----------|
 | `name`              | `string`   | The metric name.                                                                                         |                          | yes      |
 | `action`            | `string`   | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`.                              |                          | yes      |
 | `description`       | `string`   | The metric's description and help text.                                                                  | `""`                     | no       |
 | `source`            | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name.                      | `""`                     | no       |
 | `prefix`            | `string`   | The prefix to the metric name.                                                                           | `"loki_process_custom_"` | no       |
-| `max_idle_duration`     | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.                        | `"5m"`                   | no       |
+| `max_idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.                        | `"5m"`                   | no       |
 | `value`             | `string`   | If set, the metric only changes if `source` exactly matches the `value`.                                 | `""`                     | no       |
 | `match_all`         | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false`                  | no       |
 | `count_entry_bytes` | `bool`     | If set to true, counts all log lines bytes.                                                              | `false`                  | no       |
@@ -595,15 +756,15 @@ Defines a gauge metric whose value can go up or down.
 
 The following arguments are supported:
 
-| Name            | Type       | Description                                                                         | Default                  | Required |
-| --------------- | ---------- | ----------------------------------------------------------------------------------- | ------------------------ | -------- |
-| `name`          | `string`   | The metric name.                                                                    |                          | yes      |
-| `action`        | `string`   | The action to take. Valid actions are `inc` and `add`.                              |                          | yes      |
-| `description`   | `string`   | The metric's description and help text.                                             | `""`                     | no       |
-| `source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
-| `prefix`        | `string`   | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
+| Name                | Type       | Description                                                                         | Default                  | Required |
+|---------------------|------------|-------------------------------------------------------------------------------------|--------------------------|----------|
+| `name`              | `string`   | The metric name.                                                                    |                          | yes      |
+| `action`            | `string`   | The action to take. Valid actions are `inc` and `add`.                              |                          | yes      |
+| `description`       | `string`   | The metric's description and help text.                                             | `""`                     | no       |
+| `source`            | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
+| `prefix`            | `string`   | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
 | `max_idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
-| `value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
+| `value`             | `string`   | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 
 The valid `action` values are `inc`, `dec`, `set`, `add`, or `sub`.
@@ -618,15 +779,15 @@ Defines a histogram metric whose values are recorded in predefined buckets.
 
 The following arguments are supported:
 
-| Name            | Type          | Description                                                                         | Default                  | Required |
-| --------------- | ------------- | ----------------------------------------------------------------------------------- | ------------------------ | -------- |
-| `name`          | `string`      | The metric name.                                                                    |                          | yes      |
-| `buckets`       | `list(float)` | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`.         |                          | yes      |
-| `description`   | `string`      | The metric's description and help text.                                             | `""`                     | no       |
-| `source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
-| `prefix`        | `string`      | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
+| Name                | Type          | Description                                                                         | Default                  | Required |
+|---------------------|---------------|-------------------------------------------------------------------------------------|--------------------------|----------|
+| `name`              | `string`      | The metric name.                                                                    |                          | yes      |
+| `buckets`           | `list(float)` | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`.         |                          | yes      |
+| `description`       | `string`      | The metric's description and help text.                                             | `""`                     | no       |
+| `source`            | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
+| `prefix`            | `string`      | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
 | `max_idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
-| `value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
+| `value`             | `string`      | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 #### metrics behavior
 
@@ -847,7 +1008,7 @@ The following arguments are supported:
 | Name               | Type           | Description                                                                     | Default | Required |
 | ------------------ | -------------- | ------------------------------------------------------------------------------- | ------- | -------- |
 | `labels`           | `list(string)` | The values from the extracted data and labels to pack with the log entry.       |         | yes      |
-| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true   | no       |
+| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true`  | no       |
 
 This stage lets you embed extracted values and labels together with the log
 line, by packing them into a JSON object. The original message is stored under
@@ -877,7 +1038,7 @@ embedded labels are removed from the original log entry:
 {
   "_entry": "something went wrong",
   "env": "dev",
-  "user_id": "f8fas0r",
+  "user_id": "f8fas0r"
 }
 ```
 
@@ -1069,6 +1230,30 @@ ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, Trim
 
 "{{ if eq .Value \"200\" }}{{ Replace .Value \"200\" \"HttpStatusOk\" -1 }}{{ else }}{{ .Value | ToUpper }}{{ end }}"
 "*IP4*{{ .Value | Hash "salt" }}*"
+```
+
+### stage.sampling block
+
+The `sampling` stage is used to sample the logs. Configuring the value 
+`rate = 0.1` means that 10% of the logs will continue to be processed. The
+remaining 90% of the logs will be dropped.
+
+The following arguments are supported:
+
+| Name                  | Type     | Description                                                                                        | Default        | Required |
+|-----------------------|----------|----------------------------------------------------------------------------------------------------|----------------|----------|
+| `rate`                | `float`  | The sampling rate in a range of `[0, 1]`                                                           |                | yes      |
+| `drop_counter_reason` | `string` | The label to add to `loki_process_dropped_lines_total` metric when logs are dropped by this stage. | sampling_stage | no       |
+
+For example, the configuration below will sample 25% of the logs and drop the 
+remaining 75%. When logs are dropped, the `loki_process_dropped_lines_total` 
+metric is incremented with an additional `reason=logs_sampling` label.
+
+```river
+stage.sampling {
+    rate = 0.25
+    drop_counter_reason = "logs_sampling"
+}
 ```
 
 ### stage.static_labels block
@@ -1321,6 +1506,11 @@ The following arguments are supported:
 | `location`          | `string`       | IANA Timezone Database location to use when parsing.        | `""`      | no       |
 | `action_on_failure` | `string`       | What to do when the timestamp can't be extracted or parsed. | `"fudge"` | no       |
 
+{{< admonition type="note" >}}
+Be careful with further stages which may also override the timestamp.
+For example, a `stage.pack` with `ingest_timestamp` set to `true` could replace the timestamp which `stage.timestamp` had set earlier in the pipeline.
+{{< /admonition >}}
+
 The `source` field defines which value from the shared map of extracted values
 the stage should attempt to parse as a timestamp.
 
@@ -1414,7 +1604,7 @@ The following arguments are supported:
 | ---------------- | ------------- | -------------------------------------------------- | ------- | -------- |
 | `db`             | `string`      | Path to the Maxmind DB file.                       |         | yes      |
 | `source`         | `string`      | IP from extracted data to parse.                   |         | yes      |
-| `db_type`        | `string`      | Maxmind DB type. Allowed values are "city", "asn". |         | no       |
+| `db_type`        | `string`      | Maxmind DB type. Allowed values are "city", "asn", "country". |         | no       |
 | `custom_lookups` | `map(string)` | Key-value pairs of JMESPath expressions.           |         | no       |
 
 
@@ -1438,6 +1628,7 @@ loki.process "example" {
 		values = {
 			geoip_city_name          = "",
 			geoip_country_name       = "",
+			geoip_country_code       = "",
 			geoip_continent_name     = "",
 			geoip_continent_code     = "",
 			geoip_location_latitude  = "",
@@ -1458,7 +1649,8 @@ The extracted data from the IP used in this example:
 
 - geoip_city_name: Kansas City
 - geoip_country_name: United States
-- geoip_continet_name: North America
+- geoip_country_code: US
+- geoip_continent_name: North America
 - geoip_continent_code: NA
 - geoip_location_latitude: 39.1027
 - geoip_location_longitude: -94.5778
@@ -1498,6 +1690,42 @@ The extracted data from the IP used in this example:
 - geoip_autonomous_system_number: 396982
 - geoip_autonomous_system_organization: GOOGLE-CLOUD-PLATFORM
 
+#### GeoIP with Country database example:
+
+```
+{"log":"log message","client_ip":"34.120.177.193"}
+
+loki.process "example" {
+	stage.json {
+		expressions = {ip = "client_ip"}
+	}
+
+	stage.geoip {
+		source  = "ip"
+		db      = "/path/to/db/GeoLite2-Country.mmdb"
+		db_type = "country"
+	}
+
+	stage.labels {
+		values = {
+			geoip_country_name       = "",
+			geoip_country_code       = "",
+			geoip_continent_name     = "",
+			geoip_continent_code     = "",
+		}
+	}
+}
+```
+
+The `json` stage extracts the IP address from the `client_ip` key in the log line. 
+Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the following fields in the shared map which are added as labels using the `labels` stage.
+
+The extracted data from the IP used in this example:
+
+- geoip_country_name: United States
+- geoip_country_code: US
+- geoip_continent_name: North America
+- geoip_continent_code: NA
 
 #### GeoIP with custom fields example
 
@@ -1570,3 +1798,21 @@ loki.process "local" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.process` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
+
+`loki.process` has exports that can be consumed by the following components:
+
+- Components that consume [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-consumers)
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

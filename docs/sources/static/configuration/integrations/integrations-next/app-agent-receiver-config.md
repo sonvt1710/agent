@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../../configuration/integrations/integrations-next/app-agent-receiver-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/app-agent-receiver-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/app-agent-receiver-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/app-agent-receiver-config/
-title: app_agent_receiver_config next
 description: Learn about app_agent_receiver_config next
+title: app_agent_receiver_config next
 ---
 
 # app_agent_receiver_config next
@@ -101,6 +103,9 @@ filesystem:
 ## sourcemap_file_location
 
 ```yaml
+# Grafana Faro Web SDK will send filename in stacktrace, when any exception is being captured.
+# That filename will be the source url. e.g. https://my-app.dev/static/foo.js
+#
 # Source URL prefix. If a minified source URL matches this prefix,
 # a filepath is constructed by removing the prefix, prepending path below and appending ".map".
 #

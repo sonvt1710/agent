@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.jaeger/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.jaeger/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.jaeger/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.jaeger/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.jaeger/
-title: otelcol.receiver.jaeger
 description: Learn about otelcol.receiver.jaeger
+title: otelcol.receiver.jaeger
 ---
 
 # otelcol.receiver.jaeger
@@ -114,7 +115,7 @@ Name | Type | Description | Default | Required
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### keepalive block
 
@@ -163,7 +164,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:14268"` | no
-`max_request_body_size` | `string` | Maximum request body size the server will allow. No limit when unset. | | no
+`max_request_body_size` | `string`   | Maximum request body size the server will allow.                   | `20MiB`          | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 ### cors block
@@ -222,11 +223,11 @@ Name | Type | Description | Default | Required
 
 ### debug_metrics block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -277,3 +278,18 @@ otelcol.exporter.otlp "default" {
 ## Technical details
 
 `otelcol.receiver.jaeger` supports [gzip](https://en.wikipedia.org/wiki/Gzip) for compression.
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.jaeger` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
+
+
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

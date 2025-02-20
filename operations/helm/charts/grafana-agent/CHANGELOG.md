@@ -7,9 +7,239 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Unreleased
+
+Main (unreleased)
 ----------
 
+0.44.2 (2025-01-29)
+----------
+
+### Enhancements
+
+- Only utilize spec.internalTrafficPolicy in the Service if deploying to Kubernetes 1.26 or later. (@xylogenw376dq)
+
+- Update Grafana Agent version to v0.44.2. (@ptodev)
+
+0.43.3 (2024-09-26)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.43.3. (@wildum)
+
+0.43.2 (2024-09-25)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.43.2. (@wildum)
+
+0.43.0 (2024-09-11)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.43.0. (@ptodev)
+
+0.42.0 (2024-07-24)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.42.0. (@ptodev)
+
+0.41.0 (2024-06-07)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.41.1. (@mattdurham)
+
+0.40.0 (2024-05-31)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.41.0. (@erikbaranowski)
+
+0.39.0 (2024-05-15)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.5. (@ptodev)
+
+0.38.0 (2024-04-12)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.4. (@ptodev)
+
+0.37.0 (2024-03-14)
+----------
+
+### Features
+
+- Allow setting nodePort for service. (@ryayon)
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.3. (@thampiotr)
+
+0.36.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.2. (@rfratto)
+
+0.35.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.1. (@rfratto)
+
+0.34.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.0. (@jcreixell)
+
+0.33.0 (2024-02-20)
+-------------------
+
+### Features
+
+- Add HPA behavior support for scaling up and down. (@wildum)
+
+### Enhancements
+
+- Allow setting tlsConfig for serviceMonitor (@captncraig)
+- Allow setting internalTrafficPolicy for service (@captncraig)
+
+0.32.0 (2024-02-15)
+-------------------
+
+### Enhancements
+
+- Allow setting scheme for readiness checks when using tls. (@captncraig)
+
+- Update Grafana Agent version to v0.39.2. (@captncraig)
+
+0.31.1 (2024-01-19)
+-------------------
+
+### Enhancements
+
+- Add `kubectl.kubernetes.io/default-container: grafana-agent` annotation to allow various tools to choose `grafana-agent` container as default target (@aerfio)
+
+- Add support for topology spread constraints in helm chart. (@etiennep)
+
+- Update Grafana Agent version to v0.39.1. (@marctc)
+
+### Bugfixes
+
+- Fix a bug preventing the `.Values.configReloader.image.digest` Helm value to be correctly retrieved. (@claudioscalzo)
+
+- Fix a bug preventing digests to be used as labels because of their length. Labels values [must be 63 characters or less](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). (@claudioscalzo)
+
+0.31.0 (2024-01-10)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.39.0. (@marctc)
+
+### Bugfixes
+
+- Configure namespace for service account when RBAC resources is created. (@hainenber)
+
+### Other changes
+
+- Change config reloader image to `ghcr.io/jimmidyson/configmap-reload:v0.12.0` to reflect change in repository and version. (@berendiwema)
+
+0.30.0 (2024-01-05)
+-------------------
+
+### Enhancements
+
+- Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+
+- Add `serviceAccount.additionalLabels` to values.yaml to enable setting additional labels on the created service account. (@zopanix)
+
+### Bugfixes
+
+- Statefulset should use value `.controller.enableStatefulSetAutoDeletePVC` instead of just `.enableStatefulSetAutoDeletePVC`. (@captncraig)
+
+0.29.0 (2023-11-30)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.38.1. (@rfratto)
+
+### Other changes
+
+- Update `container.securityContext` Helm value reference to renamed `agent.securityContext`. (@hainenber)
+
+0.28.0 (2023-11-21)
+-------------------
+
+### Enhancements
+
+- Ensure that `app.kubernetes.io/version` label accounts for any
+  image tag overrides supplied to the chart Values. (@tristanburgess)
+
+- Update Grafana Agent version to v0.38.0. (@rfratto)
+
+0.27.2 (2023-11-07)
+----------
+
+### Enhancements
+
+- Expose the `ui-path-prefix` flag on the Helm chart. (@mlcdf)
+
+- Expose controller `extraAnnotations` on the Helm chart. (@mcanevet)
+
+- Update Grafana Agent version to v0.37.4. (@tpaschalis)
+
+0.27.1 (2023-10-26)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.37.3. (@tpaschalis)
+
+### Bugfixes
+
+- Fix issue where CRDs were created with annotations after the `crds.create`
+  setting was introduced (@rfratto).
+
+0.27.0 (2023-10-12)
+----------
+
+### Enhancements
+
+- Add `secrets` and `configmaps` to cluster role for `remote.kubernetes.*` components. (@captncraig)
+
+- Update Grafana Agent version to v0.37.2. (@tpaschalis)
+
+0.26.0 (2023-10-10)
+-------------------
+
+### Breaking changes
+
+- The `initContainers` setting has been moved to `controller.initContainers`
+  for consistency with other Pod-level settings. (@rfratto)
+
+### Enhancements
+
+- Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
+
+- Update Grafana Agent version to v0.37.1. (@tpaschalis)
 
 0.25.0 (2023-09-22)
 -------------------
