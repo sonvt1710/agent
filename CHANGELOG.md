@@ -10,6 +10,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Other changes
+
+- Update to go 1.24.2 (@wildum)
+
+- Upgrade a few dependencies. (@wildum)
+
 v0.44.2 (2024-01-29)
 -------------------------
 
